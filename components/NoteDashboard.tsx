@@ -2,9 +2,8 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Plus, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import NoteCard from "./NoteCard"
-import CreateNoteDialog from "./CreateNoteDialog"
 import FloatingNoteCreator from "./FloatingNoteCreator"
 import { Button } from "@/components/ui/button"
 import { fetchNotes, type Note } from "@/lib/api"
@@ -48,16 +47,7 @@ export default function NoteDashboard() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-[#1C1917]">MTr</h1>
-            <CreateNoteDialog onNoteCreated={handleNoteCreated}>
-              <Button className="flex items-center gap-2 bg-[#1C1917] hover:bg-[#1C1917]/90">
-                <Plus className="h-4 w-4" />
-                新建笔记
-              </Button>
-            </CreateNoteDialog>
-          </div>
-          
+          <h1 className="text-3xl font-bold text-[#1C1917] mb-6">MTr</h1>
           <p className="text-[#A3A3A3] text-lg">
             收集想法，保存链接，记录思考
           </p>
@@ -89,14 +79,8 @@ export default function NoteDashboard() {
                 还没有笔记
               </h3>
               <p className="text-[#A3A3A3] mb-6">
-                点击上方按钮创建你的第一个笔记
+                点击底部按钮创建你的第一个笔记
               </p>
-              <CreateNoteDialog onNoteCreated={handleNoteCreated}>
-                <Button className="bg-[#1C1917] hover:bg-[#1C1917]/90">
-                  <Plus className="mr-2 h-4 w-4" />
-                  创建笔记
-                </Button>
-              </CreateNoteDialog>
             </div>
           </div>
         ) : (

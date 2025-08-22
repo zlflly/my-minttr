@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState } from "react"
-import { Plus, FileText, Link, Image, Palette } from "lucide-react"
 import CreateNoteDialog from "./CreateNoteDialog"
 import type { Note } from "@/lib/api"
 
@@ -14,40 +13,6 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
   const [activeDialog, setActiveDialog] = useState<string | null>(null)
 
   const noteTypes = [
-    {
-      id: "canvas",
-      label: "Canvas",
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-[1em] h-[1em] text-current">
-          <rect width="256" height="256" fill="none"></rect>
-          <rect x="152" y="40" width="64" height="176" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
-          <line x1="152" y1="88" x2="184" y2="88" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></line>
-          <line x1="152" y1="128" x2="184" y2="128" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></line>
-          <line x1="152" y1="168" x2="184" y2="168" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></line>
-          <path d="M40,64,72,32l32,32V208a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></path>
-          <line x1="72" y1="72" x2="72" y2="184" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></line>
-          <line x1="104" y1="72" x2="40" y2="72" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></line>
-          <line x1="104" y1="184" x2="40" y2="184" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></line>
-        </svg>
-      ),
-      hotkey: "4",
-      description: "创建画布笔记"
-    },
-    {
-      id: "image",
-      label: "Image", 
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-[1em] h-[1em] text-current">
-          <rect width="256" height="256" fill="none"></rect>
-          <rect x="32" y="48" width="192" height="160" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
-          <circle cx="156" cy="100" r="12" fill="currentColor"></circle>
-          <path d="M147.31,164,173,138.34a8,8,0,0,1,11.31,0L224,178.06" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></path>
-          <path d="M32,168.69l54.34-54.35a8,8,0,0,1,11.32,0L191.31,208" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></path>
-        </svg>
-      ),
-      hotkey: "3",
-      description: "添加图片笔记"
-    },
     {
       id: "link",
       label: "Link",
@@ -79,7 +44,7 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
   const handleNoteTypeClick = (type: string) => {
     if (type === "link") {
       setActiveDialog("link")
-    } else {
+    } else if (type === "mind") {
       setActiveDialog("text")
     }
   }
