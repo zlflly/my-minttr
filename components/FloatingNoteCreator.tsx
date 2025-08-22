@@ -102,6 +102,12 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
     handleDialogClose()
   }
 
+  const handleMainButtonClick = () => {
+    if (isExpanded) {
+      setIsExpanded(false)
+    }
+  }
+
   return (
     <>
       <div 
@@ -115,29 +121,30 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
           style={{
             padding: isExpanded ? "0.5rem 1rem" : "0",
             width: isExpanded ? "320px" : "auto",
+            minWidth: isExpanded ? "320px" : "auto",
             backgroundColor: "rgb(241,240,239)",
             backdropFilter: "blur(32px) saturate(200%) contrast(120%)",
             WebkitBackdropFilter: "blur(32px) saturate(200%) contrast(120%)",
             boxShadow: "0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)",
-            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           {/* 展开的菜单内容 */}
           {isExpanded && (
             <div 
-              className="relative z-10 py-2"
+              className="relative z-10 py-1"
               style={{
                 animation: "fadeInUp 0.3s ease-out forwards"
               }}
             >
               <div 
-                className="text-gray-500 text-xs font-medium px-3 mb-2 uppercase tracking-wider"
+                className="text-gray-500 text-xs font-medium px-3 mb-1.5 uppercase tracking-wider"
                 style={{
                   opacity: 0,
                   animation: "fadeInUp 0.25s ease-out 0.05s forwards"
                 }}
               >
-                Create
+                NEW
               </div>
               
               {noteTypes.map((noteType, index) => (
@@ -145,11 +152,11 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
                   key={noteType.id}
                   style={{
                     opacity: 0,
-                    animation: `fadeInUp 0.25s ease-out ${0.1 + index * 0.05}s forwards`
+                    animation: `fadeInUp 0.25s ease-out ${0.1 + index * 0.06}s forwards`
                   }}
                 >
                   <button
-                    className="w-full text-[15px] font-medium text-gray-800 px-3 py-2 rounded-lg select-none flex items-center justify-between gap-2 transition-colors duration-200 hover:bg-black/5"
+                    className="w-full text-[15px] font-medium text-gray-800 px-3 py-1.5 rounded-lg select-none flex items-center justify-between gap-2 transition-colors duration-200 hover:bg-black/5"
                     onClick={() => handleNoteTypeClick(noteType.id)}
                   >
                     <div className="flex items-center gap-3">
@@ -165,26 +172,25 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
                 </div>
               ))}
               
-              {/* 分隔线 */}
-              <div className="h-px bg-gray-200/50 mx-3 my-2" />
+              {/* 更细的分隔线，间距更小 */}
+              <div className="h-[0.5px] bg-gray-200/40 mx-3 my-1" />
             </div>
           )}
           
           {/* 主按钮 */}
-          <div 
-            className={`flex items-center justify-center gap-2 text-[15px] font-medium text-gray-800 rounded-full select-none cursor-default ${!isExpanded ? 'px-4 py-2.5' : 'py-2'}`}
+          <button
+            className={`w-full flex items-center justify-center gap-2 text-[15px] font-medium text-gray-800 rounded-full select-none transition-all duration-200 ${!isExpanded ? 'px-4 py-2.5 hover:bg-black/5' : 'py-1.5 hover:bg-black/5 cursor-pointer'}`}
             style={{
-              backgroundColor: isExpanded ? 'transparent' : 'rgb(241,240,239)',
-              transition: 'all 0.2s ease-out'
+              backgroundColor: 'transparent',
             }}
+            onClick={handleMainButtonClick}
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               viewBox="0 0 256 256" 
-              className="w-5 h-5 text-gray-800"
+              className="w-5 h-5 text-gray-800 transition-transform duration-300"
               style={{
                 transform: isExpanded ? "rotate(45deg)" : "rotate(0deg)",
-                transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
               }}
             >
               <rect width="256" height="256" fill="none"></rect>
@@ -206,7 +212,7 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
               />
             </svg>
             <span>New</span>
-          </div>
+          </button>
         </div>
       </div>
 

@@ -412,6 +412,51 @@ code:not(.hljs) {
   }
 }
 
+/* Smooth menu expansion animation */
+@keyframes smoothExpand {
+  0% {
+    opacity: 0;
+    transform: translateY(5px) scale(0.98);
+  }
+  40% {
+    opacity: 0.7;
+    transform: translateY(2px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes smoothItemReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes containerExpand {
+  0% {
+    width: auto;
+    opacity: 0.9;
+  }
+  30% {
+    opacity: 0.95;
+  }
+  100% {
+    width: 320px;
+    opacity: 1;
+  }
+}
+
 /* Smooth transitions for floating menu */
 .floating-menu-enter {
   animation: expandIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
