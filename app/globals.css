@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "katex/dist/katex.min.css";
+@import "highlight.js/styles/github.css";
 
 :root {
   --background: oklch(1 0 0);
@@ -208,4 +210,66 @@
   background-color: var(--gray-1);
   box-shadow: var(--kbd-box-shadow);
   transition: box-shadow 0.12s, background-color 0.12s;
+}
+
+/* Markdown content optimizations */
+
+/* KaTeX math formulas styling */
+.katex {
+  font-size: 1.1em;
+}
+
+.katex-display {
+  margin: 1.5em 0;
+  text-align: center;
+}
+
+/* Code blocks styling */
+.hljs {
+  background: #f8f9fa !important;
+  color: #24292e !important;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+/* Inline code styling */
+code:not(.hljs) {
+  background-color: #f6f8fa;
+  color: #d73a49;
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+/* Table styling for markdown */
+.prose table {
+  border-collapse: collapse;
+  margin: 1.5em 0;
+}
+
+.prose table th,
+.prose table td {
+  border: 1px solid #e1e5e9;
+  padding: 0.5rem 0.75rem;
+}
+
+.prose table th {
+  background-color: #f6f8fa;
+  font-weight: 600;
+}
+
+/* Blockquote styling */
+.prose blockquote {
+  border-left: 4px solid #d1d5db;
+  background-color: #f9fafb;
+  margin: 1.5em 0;
+  padding: 1rem 1.5rem;
+  font-style: italic;
+}
+
+/* Task list styling */
+.prose input[type="checkbox"] {
+  margin-right: 0.5rem;
 }

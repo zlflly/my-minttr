@@ -43,57 +43,47 @@ export default function NoteDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F6F4F0] p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#1C1917] mb-6">MTr</h1>
-          <p className="text-[#A3A3A3] text-lg">
-            收集想法，保存链接，记录思考
-          </p>
+    <div className="min-h-screen bg-[#F6F4F0] p-4">
+      {/* 内容区域 */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-2 text-[#A3A3A3]">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            加载中...
+          </div>
         </div>
-
-        {/* 内容区域 */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="flex items-center gap-2 text-[#A3A3A3]">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              加载中...
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <p className="text-red-500 mb-4">{error}</p>
+          <Button 
+            onClick={loadNotes}
+            variant="outline"
+            className="text-[#1C1917] border-[#1C1917]"
+          >
+            重试
+          </Button>
+        </div>
+      ) : notes.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="text-center">
+            <h3 className="text-xl font-medium text-[#1C1917] mb-2">
+              还没有笔记
+            </h3>
+            <p className="text-[#A3A3A3] mb-6">
+              点击底部按钮创建你的第一个笔记
+            </p>
+          </div>
+        </div>
+      ) : (
+        /* Masonry layout */
+        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
+          {notes.map((note) => (
+            <div key={note.id} className="break-inside-avoid">
+              <NoteCard note={note} />
             </div>
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <p className="text-red-500 mb-4">{error}</p>
-            <Button 
-              onClick={loadNotes}
-              variant="outline"
-              className="text-[#1C1917] border-[#1C1917]"
-            >
-              重试
-            </Button>
-          </div>
-        ) : notes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="text-center">
-              <h3 className="text-xl font-medium text-[#1C1917] mb-2">
-                还没有笔记
-              </h3>
-              <p className="text-[#A3A3A3] mb-6">
-                点击底部按钮创建你的第一个笔记
-              </p>
-            </div>
-          </div>
-        ) : (
-          /* Masonry layout */
-          <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-            {notes.map((note) => (
-              <div key={note.id} className="break-inside-avoid">
-                <NoteCard note={note} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
       
       {/* Floating Note Creator */}
       <FloatingNoteCreator onNoteCreated={handleNoteCreated} />
