@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Element Style</title>
+  <style>
+.radix-themes ::selection{background-color:var(--focus-a5);}
+.rt-reset:where(address,b,cite,code,dfn,em,i,kbd,q,samp,small,strong,var){font:unset;}
+.rt-reset:where(:focus){outline:none;}
+.rt-reset::placeholder{color:unset;opacity:unset;-webkit-user-select:none;user-select:none;}
+.rt-reset,.rt-reset:after,.rt-reset:before{box-sizing:border-box;}
+.rt-Kbd{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--default-font-family);font-weight:400;vertical-align:text-top;white-space:nowrap;-webkit-user-select:none;user-select:none;position:relative;top:-.03em;font-size:.75em;min-width:1.75em;line-height:1.7em;box-sizing:border-box;padding-left:.5em;padding-right:.5em;padding-bottom:.05em;word-spacing:-.1em;border-radius:calc(var(--radius-factor) * .35em);letter-spacing:var(--letter-spacing,var(--default-letter-spacing));height:-moz-fit-content;height:fit-content;color:var(--gray-12);background-color:var(--gray-1);box-shadow:var(--kbd-box-shadow);transition:box-shadow .12s,background-color .12s;}
+*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-scroll-snap-strictness:proximity;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246/0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;}
+*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb;}
+:after,:before{--tw-content:"";}
+a{color:inherit;text-decoration:inherit;}
+kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em;}
+:disabled{cursor:default;}
+svg{display:block;vertical-align:middle;}
+.pointer-events-auto{pointer-events:auto;}
+.relative{position:relative;}
+.z-10{z-index:10;}
+.flex{display:flex;}
+.hidden{display:none;}
+.h-\[1em\]{height:1em;}
+.w-\[1em\]{width:1em;}
+.w-auto{width:auto;}
+.w-full{width:100%;}
+.max-w-\[96\%\]{max-width:96%;}
+.cursor-default{cursor:default;}
+.select-none{user-select:none;}
+.flex-col{flex-direction:column;}
+.items-center{align-items:center;}
+.justify-center{justify-content:center;}
+.justify-between{justify-content:space-between;}
+.gap-1{gap:.25rem;}
+.gap-2{gap:.5rem;}
+.overflow-hidden{overflow:hidden;}
+.rounded-3xl{border-radius:1.5rem;}
+.rounded-full{border-radius:9999px;}
+.border-\[0\.5px\]{border-width:.5px;}
+.border-white\/45{border-color:rgb(255 255 255/.45);}
+.bg-sand-3{background-color:var(--sand-3);}
+.bg-sand-a2{background-color:var(--sand-a2);}
+.px-3{padding-left:.75rem;padding-right:.75rem;}
+.py-1{padding-top:.25rem;padding-bottom:.25rem;}
+.py-1\.5{padding-top:.375rem;padding-bottom:.375rem;}
+.py-2{padding-top:.5rem;padding-bottom:.5rem;}
+.text-\[15px\]{font-size:15px;}
+.text-xs{font-size:.75rem;line-height:1rem;}
+.font-medium{font-weight:500;}
+.text-current{color:currentColor;}
+.text-sand-12{color:var(--sand-12);}
+.shadow-3{--tw-shadow:var(--shadow-3);--tw-shadow-colored:var(--shadow-3);}
+.shadow-3{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow);}
+.backdrop-blur-xl{--tw-backdrop-blur:blur(24px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);}
+.transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s;}
+.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s;}
+.duration-100{transition-duration:.1s;}
+.ease-out{transition-timing-function:cubic-bezier(0,0,.2,1);}
+div:focus{outline:none;}
+.scale-effect:active{--tw-translate-y:0.5px;--tw-scale-x:0.985;--tw-scale-y:0.985;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));}
+.hover\:bg-sand-a4:hover{background-color:var(--sand-a4);}
+.hover\:px-4:hover{padding-left:1rem;padding-right:1rem;}
+@media (min-width:640px){
+.sm\:inline{display:inline;}
+}
+*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-scroll-snap-strictness:proximity;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246/0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;}
+*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb;}
+:after,:before{--tw-content:"";}
+a{color:inherit;text-decoration:inherit;}
+kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em;}
+:disabled{cursor:default;}
+svg{display:block;vertical-align:middle;}
+.pointer-events-auto{pointer-events:auto;}
+.relative{position:relative;}
+.z-10{z-index:10;}
+.flex{display:flex;}
+.hidden{display:none;}
+.h-\[1em\]{height:1em;}
+.w-\[1em\]{width:1em;}
+.w-auto{width:auto;}
+.w-full{width:100%;}
+.max-w-\[96\%\]{max-width:96%;}
+.cursor-default{cursor:default;}
+.select-none{user-select:none;}
+.flex-col{flex-direction:column;}
+.items-center{align-items:center;}
+.justify-center{justify-content:center;}
+.justify-between{justify-content:space-between;}
+.gap-1{gap:.25rem;}
+.gap-2{gap:.5rem;}
+.overflow-hidden{overflow:hidden;}
+.rounded-3xl{border-radius:1.5rem;}
+.rounded-full{border-radius:9999px;}
+.border-\[0\.5px\]{border-width:.5px;}
+.border-white\/45{border-color:rgb(255 255 255/.45);}
+.bg-sand-3{background-color:var(--sand-3);}
+.bg-sand-a2{background-color:var(--sand-a2);}
+.px-3{padding-left:.75rem;padding-right:.75rem;}
+.py-1{padding-top:.25rem;padding-bottom:.25rem;}
+.py-1\.5{padding-top:.375rem;padding-bottom:.375rem;}
+.py-2{padding-top:.5rem;padding-bottom:.5rem;}
+.text-\[15px\]{font-size:15px;}
+.text-xs{font-size:.75rem;line-height:1rem;}
+.font-medium{font-weight:500;}
+.text-current{color:currentColor;}
+.text-sand-12{color:var(--sand-12);}
+.shadow-3{--tw-shadow:var(--shadow-3);--tw-shadow-colored:var(--shadow-3);}
+.shadow-3{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow);}
+.backdrop-blur-xl{--tw-backdrop-blur:blur(24px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);}
+.transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s;}
+.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s;}
+.duration-100{transition-duration:.1s;}
+.ease-out{transition-timing-function:cubic-bezier(0,0,.2,1);}
+.hover\:bg-sand-a4:hover{background-color:var(--sand-a4);}
+.hover\:px-4:hover{padding-left:1rem;padding-right:1rem;}
+@media (min-width:640px){
+.sm\:inline{display:inline;}
+}
+  </style>
+</head>
+<body>
+<div class="rounded-3xl w-auto border-[0.5px] border-white/45 shadow-3 backdrop-blur-xl bg-sand-3 overflow-hidden pointer-events-auto max-w-[96%]" style="padding: 0.5rem 1rem; opacity: 1; width: 374px; transform: translateY(0.5rem);"><div style="opacity: 1; height: auto; filter: blur(0px);"><div class="flex flex-col gap-1 py-2" style="opacity: 1;"><div class="text-sand-12 text-xs font-medium px-3">NEW</div><div style="opacity: 1; transform: none;"><div class="text-[15px] font-medium text-sand-12 hover:bg-sand-a4 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect"><div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" class="w-[1em] h-[1em] text-current"><rect width="256" height="256" fill="none"></rect><rect x="152" y="40" width="64" height="176" rx="8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></rect><line x1="152" y1="88" x2="184" y2="88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" opacity="1" style="transform: none; transform-origin: 168px 88px;" transform-origin="168px 88px"></line><line x1="152" y1="128" x2="184" y2="128" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" opacity="1" style="transform: none; transform-origin: 168px 128px;" transform-origin="168px 128px"></line><line x1="152" y1="168" x2="184" y2="168" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" opacity="1" style="transform: none; transform-origin: 168px 168px;" transform-origin="168px 168px"></line><g style="transform: none; transform-origin: 72px 124px;" transform-origin="72px 124px"><path d="M40,64,72,32l32,32V208a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></path><line x1="72" y1="72" x2="72" y2="184" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" opacity="1"></line><line x1="104" y1="72" x2="40" y2="72" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" opacity="1"></line><line x1="104" y1="184" x2="40" y2="184" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" opacity="1"></line></g></svg>Canvas</div><kbd class="rt-reset rt-Kbd bg-sand-a2 text-sand-12">4</kbd></div></div><div style="opacity: 1; transform: none;"><div class="text-[15px] font-medium text-sand-12 hover:bg-sand-a4 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect"><div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" class="w-[1em] h-[1em] text-current"><rect width="256" height="256" fill="none"></rect><rect x="32" y="48" width="192" height="160" rx="8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" style="transform: none; transform-origin: 128px 128px;" transform-origin="128px 128px"></rect><circle cx="156" cy="100" r="12" fill="currentColor" opacity="1" style="transform: none; transform-origin: 156px 100px;" transform-origin="156px 100px"></circle><path d="M147.31,164,173,138.34a8,8,0,0,1,11.31,0L224,178.06" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" pathLength="1" stroke-dashoffset="0px" stroke-dasharray="1px 1px"></path><path d="M32,168.69l54.34-54.35a8,8,0,0,1,11.32,0L191.31,208" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" pathLength="1" stroke-dashoffset="0px" stroke-dasharray="1px 1px"></path></svg>Image</div><kbd class="rt-reset rt-Kbd bg-sand-a2 text-sand-12">3</kbd></div></div><div style="opacity: 1; transform: none;"><div class="text-[15px] font-medium text-sand-12 hover:bg-sand-a4 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect"><div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" class="w-[1em] h-[1em] text-current"><rect width="256" height="256" fill="none"></rect><path d="M141.38,64.68l11-11a46.62,46.62,0,0,1,65.94,0h0a46.62,46.62,0,0,1,0,65.94L193.94,144,183.6,154.34a46.63,46.63,0,0,1-66-.05h0A46.48,46.48,0,0,1,104,120.06" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" pathLength="1" stroke-dashoffset="0px" stroke-dasharray="1px 1px" style="transform: none; transform-origin: 167.98px 104.01px;" transform-origin="167.97976684570312px 104.01044082641602px"></path><path d="M114.62,191.32l-11,11a46.63,46.63,0,0,1-66-.05h0a46.63,46.63,0,0,1,.06-65.89L72.4,101.66a46.62,46.62,0,0,1,65.94,0h0A46.45,46.45,0,0,1,152,135.94" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" pathLength="1" stroke-dashoffset="0px" stroke-dasharray="1px 1px" style="transform: none; transform-origin: 88.0198px 151.99px;" transform-origin="88.01981925964355px 151.99044799804688px"></path></svg>Link</div><kbd class="rt-reset rt-Kbd bg-sand-a2 text-sand-12">2</kbd></div></div><div style="opacity: 1; transform: none;"><div class="text-[15px] font-medium text-sand-12 hover:bg-sand-a4 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect"><div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" class="w-[1em] h-[1em] text-current"><rect width="256" height="256" fill="none"></rect><path d="M63.81,192.19c-47.89-79.81,16-159.62,151.64-151.64C223.43,176.23,143.62,240.08,63.81,192.19Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" style="transform: none; transform-origin: 132.003px 123.999px;" transform-origin="132.00317764282227px 123.99913024902344px"></path><line x1="160" y1="96" x2="40" y2="216" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" style="transform: none; transform-origin: 100px 156px;" transform-origin="100px 156px"></line></svg>Mind</div><kbd class="rt-reset rt-Kbd bg-sand-a2 text-sand-12">1</kbd></div></div></div></div><div class="flex items-center gap-1 py-1 justify-center z-10 relative"><a class="cursor-default w-full" href=""><div class="text-[15px] font-medium text-sand-12 hover:bg-sand-a4 px-3 py-1.5 rounded-full select-none transition duration-100 ease-out flex items-center gap-2 scale-effect w-full justify-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" class="w-[1em] h-[1em] text-current"><rect width="256" height="256" fill="none"></rect><line x1="40" y1="128" x2="216" y2="128" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="24" style="transform: rotate(90deg); transform-origin: 128px 128px;" transform-origin="128px 128px"></line><line x1="128" y1="40" x2="128" y2="216" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="24" style="transform: rotate(90deg); transform-origin: 128px 128px;" transform-origin="128px 128px"></line></svg><span class="sm:inline hidden">New</span></div></a></div></div>
+</body>
+</html>

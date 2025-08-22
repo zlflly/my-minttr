@@ -16,11 +16,23 @@ import type { Note } from "@/lib/api"
 interface CreateNoteDialogProps {
   onNoteCreated: (note: Note) => void
   children: React.ReactNode
+  initialTab?: "link" | "text"
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export default function CreateNoteDialog({ onNoteCreated, children }: CreateNoteDialogProps) {
-  const [open, setOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<"link" | "text">("link")
+export default function CreateNoteDialog({ 
+  onNoteCreated, 
+  children, 
+  initialTab = "link",
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange
+}: CreateNoteDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<"link" | "text">(initialTab)
+  
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = controlledOnOpenChange || setInternalOpen
   const [isLoading, setIsLoading] = useState(false)
   const [isExtractingMetadata, setIsExtractingMetadata] = useState(false)
   
@@ -48,6 +60,7 @@ export default function CreateNoteDialog({ onNoteCreated, children }: CreateNote
     setContent("")
     setTags("")
     setMetadata(null)
+    setActiveTab(initialTab)
   }
 
   // 自动提取链接元数据

@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { Plus, Loader2 } from "lucide-react"
 import NoteCard from "./NoteCard"
 import CreateNoteDialog from "./CreateNoteDialog"
+import FloatingNoteCreator from "./FloatingNoteCreator"
 import { Button } from "@/components/ui/button"
 import { fetchNotes, type Note } from "@/lib/api"
 
@@ -109,6 +110,9 @@ export default function NoteDashboard() {
           </div>
         )}
       </div>
+      
+      {/* Floating Note Creator */}
+      <FloatingNoteCreator onNoteCreated={handleNoteCreated} />
     </div>
   )
 }
