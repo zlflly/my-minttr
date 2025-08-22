@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react"
 import NoteCard from "./NoteCard"
 import FloatingNoteCreator from "./FloatingNoteCreator"
 import { Button } from "@/components/ui/button"
-import { fetchNotes, type Note } from "@/lib/api"
+import { fetchNotes, deleteNote, type Note } from "@/lib/api"
 
 export default function NoteDashboard() {
   const [notes, setNotes] = useState<Note[]>([])
@@ -40,6 +40,25 @@ export default function NoteDashboard() {
   // 处理新笔记创建
   const handleNoteCreated = (newNote: Note) => {
     setNotes((prev) => [newNote, ...prev])
+  }
+
+  // 处理删除笔记
+  const handleNoteDelete = async (noteId: string) => {
+    try {
+      const response = await deleteNote(noteId)
+      if (response.success) {
+        setNotes((prev) => prev.filter(note => note.id !== noteId))
+      } else {
+        console.error("删除笔记失败:", response.error)
+      }
+    } catch (error) {
+      console.error("删除笔记时出错:", error)
+    }
+  }
+
+  // 处理隐藏笔记（仅从当前视图中移除）
+  const handleNoteHide = (noteId: string) => {
+    setNotes((prev) => prev.filter(note => note.id !== noteId))
   }
 
   return (
@@ -79,7 +98,11 @@ export default function NoteDashboard() {
         <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
           {notes.map((note) => (
             <div key={note.id} className="break-inside-avoid">
-              <NoteCard note={note} />
+              <NoteCard 
+                note={note} 
+                onDelete={handleNoteDelete}
+                onHide={handleNoteHide}
+              />
             </div>
           ))}
         </div>

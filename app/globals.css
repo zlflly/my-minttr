@@ -273,3 +273,53 @@ code:not(.hljs) {
 .prose input[type="checkbox"] {
   margin-right: 0.5rem;
 }
+
+/* Context Menu optimizations */
+
+/* Context menu content styling */
+.rt-BaseMenuViewport {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 4px;
+  min-width: 160px;
+  z-index: 50;
+}
+
+/* Context menu item styling */
+.rt-BaseMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  outline: none;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.rt-BaseMenuItem:hover,
+.rt-BaseMenuItem:focus {
+  background-color: #f3f4f6;
+}
+
+.rt-BaseMenuItem[data-highlighted] {
+  background-color: #f3f4f6;
+}
+
+/* Delete item special styling */
+.rt-BaseMenuItem:hover:has(svg path[d*="216,48"]),
+.rt-BaseMenuItem:focus:has(svg path[d*="216,48"]) {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+/* Context menu separator */
+.rt-BaseMenuSeparator {
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 4px 0;
+}

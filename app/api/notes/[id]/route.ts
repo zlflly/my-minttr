@@ -4,11 +4,12 @@ import { prisma } from '@/lib/prisma'
 // 获取单个笔记
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const note = await prisma.note.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         collections: {
           include: {
@@ -27,7 +28,7 @@ export async function GET(
 
     // 更新访问时间
     await prisma.note.update({
-      where: { id: params.id },
+      where: { id },
       data: { accessedAt: new Date() }
     })
 
@@ -47,14 +48,15 @@ export async function GET(
 // 更新笔记
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     const { title, content, url, description, domain, faviconUrl, imageUrl, tags, isArchived, isFavorite } = body
 
     const note = await prisma.note.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title,
         content,
@@ -86,11 +88,12 @@ export async function PUT(
 // 删除笔记
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await prisma.note.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({

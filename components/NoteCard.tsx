@@ -5,15 +5,21 @@ import rehypeKatex from "rehype-katex"
 import rehypeHighlight from "rehype-highlight"
 import { type Note } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Calendar, ExternalLink } from "lucide-react"
 import NoteContextMenu from "./ContextMenu"
 import { useState } from "react"
 
 interface NoteCardProps {
   note: Note
+  onDelete?: (noteId: string) => void
+  onHide?: (noteId: string) => void
 }
 
-export default function NoteCard({ note }: NoteCardProps) {
+export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
+  const [isHidden, setIsHidden] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('zh-CN', {
@@ -29,158 +35,344 @@ export default function NoteCard({ note }: NoteCardProps) {
     return note.tags.split(',').filter(tag => tag.trim()).map(tag => tag.trim())
   }
 
+  const handleHide = () => {
+    setIsHidden(true)
+    onHide?.(note.id)
+  }
+
+  const handleDelete = () => {
+    setShowDeleteConfirm(true)
+  }
+
+  const handleConfirmDelete = () => {
+    onDelete?.(note.id)
+    setShowDeleteConfirm(false)
+  }
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false)
+  }
+
+  // 如果笔记被隐藏，不渲染
+  if (isHidden) {
+    return null
+  }
+
   if (note.type === "LINK") {
     return (
-      <div className="bg-white rounded-xl border border-black/5 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden mb-4 group">
-        {note.imageUrl && (
-          <div className="aspect-video w-full overflow-hidden">
-            <img 
-              src={note.imageUrl || "/placeholder.svg"} 
-              alt={note.title} 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" 
-            />
-          </div>
-        )}
-        <div className="p-4">
-          {note.title && (
-            <h3 className="font-semibold text-[#1C1917] text-lg mb-2 leading-tight group-hover:text-blue-600 transition-colors">
-              {note.title}
-            </h3>
-          )}
-          
-          {note.description && (
-            <p className="text-[#57534E] text-sm leading-relaxed mb-3 line-clamp-3">
-              {note.description}
-            </p>
-          )}
-
-          {/* 标签 */}
-          {getTags().length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              {getTags().map((tag, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
+      <NoteContextMenu onHide={handleHide} onDelete={handleDelete}>
+        <div className="relative bg-white rounded-xl border border-black/5 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden mb-4 group cursor-pointer">
+          {note.imageUrl && (
+            <div className="aspect-video w-full overflow-hidden">
+              <img 
+                src={note.imageUrl || "/placeholder.svg"} 
+                alt={note.title} 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" 
+              />
             </div>
           )}
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-[#A3A3A3]">
-              {note.faviconUrl && (
-                <img src={note.faviconUrl || "/placeholder.svg"} alt="" className="w-4 h-4 rounded-sm" />
-              )}
-              <span>{note.domain}</span>
-            </div>
+          <div className="p-4">
+            {note.title && (
+              <h3 className="font-semibold text-[#1C1917] text-lg mb-2 leading-tight group-hover:text-blue-600 transition-colors">
+                {note.title}
+              </h3>
+            )}
             
-            <div className="flex items-center gap-2 text-xs text-[#A3A3A3]">
-              <Calendar className="h-3 w-3" />
-              <span>{formatDate(note.createdAt)}</span>
-              {note.url && (
-                <a
-                  href={note.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-2 text-blue-500 hover:text-blue-700 transition-colors"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              )}
+            {note.description && (
+              <p className="text-[#57534E] text-sm leading-relaxed mb-3 line-clamp-3">
+                {note.description}
+              </p>
+            )}
+
+            {/* 标签 */}
+            {getTags().length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-3">
+                {getTags().map((tag, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs text-[#A3A3A3]">
+                {note.faviconUrl && (
+                  <img src={note.faviconUrl || "/placeholder.svg"} alt="" className="w-4 h-4 rounded-sm" />
+                )}
+                <span>{note.domain}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 text-xs text-[#A3A3A3]">
+                <Calendar className="h-3 w-3" />
+                <span>{formatDate(note.createdAt)}</span>
+                {note.url && (
+                  <a
+                    href={note.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-2 text-blue-500 hover:text-blue-700 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
+          
+          {/* 删除确认覆盖层 */}
+          {showDeleteConfirm && (
+            <div className="absolute inset-0 bg-white/95 backdrop-blur-md rounded-xl flex flex-col items-center justify-center z-10 animate-in fade-in-0 zoom-in-95 duration-300 shadow-xl border border-gray-200">
+              <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-lg shadow-lg border border-gray-100">
+                <div className="flex items-center gap-3">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 256 256" 
+                    className="w-5 h-5 text-red-500"
+                  >
+                    <rect width="256" height="256" fill="none"></rect>
+                    <line 
+                      x1="216" y1="56" x2="40" y2="56" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="16"
+                    ></line>
+                    <line 
+                      x1="104" y1="104" x2="104" y2="168" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="16"
+                    ></line>
+                    <line 
+                      x1="152" y1="104" x2="152" y2="168" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="16"
+                    ></line>
+                    <path 
+                      d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="16"
+                    ></path>
+                    <path 
+                      d="M168,56V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V56" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="16"
+                    ></path>
+                  </svg>
+                  <span className="text-base font-semibold text-gray-900">
+                    Delete this card?
+                  </span>
+                </div>
+                
+                <div className="flex gap-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelDelete}
+                    className="min-w-[80px] h-9 text-sm hover:bg-gray-50 active:scale-95 transition-all duration-150"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleConfirmDelete}
+                    className="min-w-[110px] h-9 text-sm bg-red-500 hover:bg-red-600 text-white active:scale-95 transition-all duration-150 shadow-md"
+                  >
+                    Confirm delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </NoteContextMenu>
     )
   }
 
   return (
-    <div className="bg-white rounded-xl border border-black/5 shadow-sm hover:shadow-md transition-shadow duration-200 p-4 mb-4">
-      {note.title && (
-        <h3 className="font-semibold text-[#1C1917] text-lg mb-3">
-          {note.title}
-        </h3>
-      )}
+    <NoteContextMenu onHide={handleHide} onDelete={handleDelete}>
+      <div className="relative bg-white rounded-xl border border-black/5 shadow-sm hover:shadow-md transition-shadow duration-200 p-4 mb-4 cursor-pointer">
+        {note.title && (
+          <h3 className="font-semibold text-[#1C1917] text-lg mb-3">
+            {note.title}
+          </h3>
+        )}
 
-      <div className="prose prose-sm prose-zinc max-w-none">
-        <ReactMarkdown
-          remarkPlugins={[remarkMath, remarkGfm]}
-          rehypePlugins={[rehypeKatex, rehypeHighlight]}
-          components={{
-            h1: ({ children }) => <h1 className="text-xl font-bold text-[#1C1917] mb-3 mt-0">{children}</h1>,
-            h2: ({ children }) => <h2 className="text-lg font-semibold text-[#1C1917] mb-2 mt-4">{children}</h2>,
-            h3: ({ children }) => <h3 className="text-base font-medium text-[#1C1917] mb-2 mt-3">{children}</h3>,
-            p: ({ children }) => <p className="text-[#57534E] leading-relaxed mb-3">{children}</p>,
-            ul: ({ children }) => <ul className="text-[#57534E] mb-3 pl-4">{children}</ul>,
-            ol: ({ children }) => <ol className="text-[#57534E] mb-3 pl-4 list-decimal">{children}</ol>,
-            li: ({ children }) => <li className="mb-1 list-disc">{children}</li>,
-            blockquote: ({ children }) => (
-              <blockquote className="border-l-4 border-gray-300 pl-4 my-4 italic text-[#57534E]">
-                {children}
-              </blockquote>
-            ),
-            code: ({ children, className, ...props }) => {
-              const match = /language-(\w+)/.exec(className || '')
-              return !match ? (
-                <code className="bg-[#F5F5F4] text-[#DC2626] px-1 py-0.5 rounded text-sm font-mono" {...props}>
+        <div className="prose prose-sm prose-zinc max-w-none">
+          <ReactMarkdown
+            remarkPlugins={[remarkMath, remarkGfm]}
+            rehypePlugins={[rehypeKatex, rehypeHighlight]}
+            components={{
+              h1: ({ children }) => <h1 className="text-xl font-bold text-[#1C1917] mb-3 mt-0">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-lg font-semibold text-[#1C1917] mb-2 mt-4">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-base font-medium text-[#1C1917] mb-2 mt-3">{children}</h3>,
+              p: ({ children }) => <p className="text-[#57534E] leading-relaxed mb-3">{children}</p>,
+              ul: ({ children }) => <ul className="text-[#57534E] mb-3 pl-4">{children}</ul>,
+              ol: ({ children }) => <ol className="text-[#57534E] mb-3 pl-4 list-decimal">{children}</ol>,
+              li: ({ children }) => <li className="mb-1 list-disc">{children}</li>,
+              blockquote: ({ children }) => (
+                <blockquote className="border-l-4 border-gray-300 pl-4 my-4 italic text-[#57534E]">
                   {children}
-                </code>
-              ) : (
-                <code className={className} {...props}>
+                </blockquote>
+              ),
+              code: ({ children, className, ...props }) => {
+                const match = /language-(\w+)/.exec(className || '')
+                return !match ? (
+                  <code className="bg-[#F5F5F4] text-[#DC2626] px-1 py-0.5 rounded text-sm font-mono" {...props}>
+                    {children}
+                  </code>
+                ) : (
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                )
+              },
+              pre: ({ children }) => (
+                <pre className="bg-[#F8F9FA] border border-gray-200 rounded-lg p-4 overflow-x-auto mb-4 text-sm">
                   {children}
-                </code>
-              )
-            },
-            pre: ({ children }) => (
-              <pre className="bg-[#F8F9FA] border border-gray-200 rounded-lg p-4 overflow-x-auto mb-4 text-sm">
-                {children}
-              </pre>
-            ),
-            table: ({ children }) => (
-              <div className="overflow-x-auto mb-4">
-                <table className="min-w-full divide-y divide-gray-200">{children}</table>
-              </div>
-            ),
-            thead: ({ children }) => <thead className="bg-gray-50">{children}</thead>,
-            th: ({ children }) => (
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {children}
-              </th>
-            ),
-            td: ({ children }) => <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{children}</td>,
-            strong: ({ children }) => <strong className="font-semibold text-[#1C1917]">{children}</strong>,
-            em: ({ children }) => <em className="italic">{children}</em>,
-            a: ({ children, href }) => (
-              <a 
-                href={href} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-blue-600 hover:text-blue-800 underline"
-              >
-                {children}
-              </a>
-            ),
-            hr: () => <hr className="my-6 border-gray-200" />,
-          }}
-        >
-          {note.content}
-        </ReactMarkdown>
-      </div>
+                </pre>
+              ),
+              table: ({ children }) => (
+                <div className="overflow-x-auto mb-4">
+                  <table className="min-w-full divide-y divide-gray-200">{children}</table>
+                </div>
+              ),
+              thead: ({ children }) => <thead className="bg-gray-50">{children}</thead>,
+              th: ({ children }) => (
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {children}
+                </th>
+              ),
+              td: ({ children }) => <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{children}</td>,
+              strong: ({ children }) => <strong className="font-semibold text-[#1C1917]">{children}</strong>,
+              em: ({ children }) => <em className="italic">{children}</em>,
+              a: ({ children, href }) => (
+                <a 
+                  href={href} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  {children}
+                </a>
+              ),
+              hr: () => <hr className="my-6 border-gray-200" />,
+            }}
+          >
+            {note.content}
+          </ReactMarkdown>
+        </div>
 
-      {/* 标签和日期 */}
-      <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-        <div className="flex flex-wrap gap-1">
-          {getTags().map((tag, index) => (
-            <Badge key={index} variant="secondary" className="text-xs">
-              {tag}
-            </Badge>
-          ))}
+        {/* 标签和日期 */}
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+          <div className="flex flex-wrap gap-1">
+            {getTags().map((tag, index) => (
+              <Badge key={index} variant="secondary" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+          
+          <div className="flex items-center gap-1 text-xs text-[#A3A3A3]">
+            <Calendar className="h-3 w-3" />
+            <span>{formatDate(note.createdAt)}</span>
+          </div>
         </div>
         
-        <div className="flex items-center gap-1 text-xs text-[#A3A3A3]">
-          <Calendar className="h-3 w-3" />
-          <span>{formatDate(note.createdAt)}</span>
-        </div>
+        {/* 删除确认覆盖层 */}
+        {showDeleteConfirm && (
+          <div className="absolute inset-0 bg-white/95 backdrop-blur-md rounded-xl flex flex-col items-center justify-center z-10 animate-in fade-in-0 zoom-in-95 duration-300 shadow-xl border border-gray-200">
+            <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-lg shadow-lg border border-gray-100">
+              <div className="flex items-center gap-3">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 256 256" 
+                  className="w-5 h-5 text-red-500"
+                >
+                  <rect width="256" height="256" fill="none"></rect>
+                  <line 
+                    x1="216" y1="56" x2="40" y2="56" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="16"
+                  ></line>
+                  <line 
+                    x1="104" y1="104" x2="104" y2="168" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="16"
+                  ></line>
+                  <line 
+                    x1="152" y1="104" x2="152" y2="168" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="16"
+                  ></line>
+                  <path 
+                    d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="16"
+                  ></path>
+                  <path 
+                    d="M168,56V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V56" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="16"
+                  ></path>
+                </svg>
+                <span className="text-base font-semibold text-gray-900">
+                  Delete this card?
+                </span>
+              </div>
+              
+              <div className="flex gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelDelete}
+                  className="min-w-[80px] h-9 text-sm hover:bg-gray-50 active:scale-95 transition-all duration-150"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleConfirmDelete}
+                  className="min-w-[110px] h-9 text-sm bg-red-500 hover:bg-red-600 text-white active:scale-95 transition-all duration-150 shadow-md"
+                >
+                  Confirm delete
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </NoteContextMenu>
   )
 }

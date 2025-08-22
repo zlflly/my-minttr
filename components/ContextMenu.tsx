@@ -24,7 +24,6 @@ export default function NoteContextMenu({ children, onHide, onDelete }: ContextM
             "bg-white border border-gray-200 rounded-lg shadow-lg p-1 z-50",
             "min-w-[160px] animate-in fade-in-0 zoom-in-95 duration-200"
           )}
-          sideOffset={5}
         >
           <ContextMenu.Item
             className={cn(
