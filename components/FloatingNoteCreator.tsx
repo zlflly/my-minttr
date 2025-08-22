@@ -62,10 +62,10 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
   return (
     <>
       <div 
-        className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-out"
+        className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ease-out transform-gpu"
       >
         <div 
-          className="rounded-3xl w-auto border-[0.5px] border-white/20 shadow-3 backdrop-blur-3xl overflow-hidden pointer-events-auto max-w-[96%]"
+          className="rounded-3xl w-auto border-[0.5px] border-white/20 shadow-3 backdrop-blur-3xl overflow-hidden pointer-events-auto max-w-[96%] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] transform-gpu"
           style={{
             padding: "0.5rem 1rem",
             width: isExpanded ? "374px" : "auto",
@@ -76,13 +76,28 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
             boxShadow: "0 16px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.2)"
           }}
         >
-          <div style={{ opacity: 1, height: "auto", filter: "blur(0px)" }}>
+          <div style={{ opacity: 1, height: "auto", filter: "blur(0px)", overflow: "hidden" }}>
             {isExpanded && (
-              <div className="flex flex-col gap-1 py-2" style={{ opacity: 1 }}>
-                <div className="text-white/90 text-xs font-medium px-3">NEW</div>
+              <div 
+                className="flex flex-col gap-1 py-2" 
+                style={{ 
+                  opacity: 1,
+                  animation: "expandIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards"
+                }}
+              >
+                <div className="text-white/90 text-xs font-medium px-3 transform translate-y-0 opacity-100 transition-all duration-500 ease-out" style={{ animationDelay: "0.1s" }}>NEW</div>
                 
                 {noteTypes.map((noteType, index) => (
-                  <div key={noteType.id} style={{ opacity: 1, transform: "none" }}>
+                  <div 
+                    key={noteType.id} 
+                    className="transform translate-y-0 opacity-100" 
+                    style={{ 
+                      animation: `slideInUp 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards`,
+                      animationDelay: `${0.2 + index * 0.1}s`,
+                      opacity: 0,
+                      transform: "translateY(20px)"
+                    }}
+                  >
                     <div 
                       className="text-[15px] font-medium text-white/90 hover:bg-white/10 active:bg-white/20 active:scale-95 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-300 ease-out flex items-center justify-between gap-2 cursor-pointer transform-gpu"
                       onClick={() => handleNoteTypeClick(noteType.id)}
@@ -102,7 +117,7 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
             
             <div className="flex items-center gap-1 py-1 justify-center z-10 relative">
               <button 
-                className="cursor-default w-full"
+                className="cursor-default w-full active:scale-95 transition-all duration-300 ease-out transform-gpu"
                 onClick={() => setIsExpanded(!isExpanded)}
               >
                 <div className="text-[15px] font-medium text-white/90 hover:bg-white/10 active:bg-white/20 active:scale-95 px-3 py-1.5 rounded-full select-none transition-all duration-300 ease-out flex items-center gap-2 w-full justify-center cursor-pointer transform-gpu">
@@ -113,7 +128,7 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
                     style={{
                       transform: isExpanded ? "rotate(45deg)" : "rotate(0deg)",
                       transformOrigin: "50% 50%",
-                      transition: "transform 0.2s ease-out"
+                      transition: "transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)"
                     }}
                   >
                     <rect width="256" height="256" fill="none"></rect>

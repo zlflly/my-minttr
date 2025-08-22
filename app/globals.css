@@ -346,3 +346,34 @@ code:not(.hljs) {
     inset 0 1px 0 rgba(255,255,255,0.15),
     inset 0 -1px 0 rgba(0,0,0,0.2);
 }
+
+/* 流畅的点击动画增强 */
+.smooth-click {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+.smooth-click:active {
+  transform: scale(0.95) translateZ(0);
+}
+
+.smooth-scale {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0);
+}
+
+.smooth-scale:hover {
+  transform: scale(1.02) translateZ(0);
+}
+
+.smooth-scale:active {
+  transform: scale(0.98) translateZ(0);
+}
+
+/* 优化GPU加速 */
+.transform-gpu {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
