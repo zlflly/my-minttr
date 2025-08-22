@@ -1,0 +1,121 @@
+// MTr 笔记应用数据库架构
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// 用户表
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  displayName String?  @map("display_name")
+  avatarUrl   String?  @map("avatar_url")
+  preferences String   @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  lastLoginAt DateTime? @map("last_login_at")
+
+  // 关联
+  notes       Note[]
+  collections Collection[]
+  sharedNotes SharedNote[]
+
+  @@map("users")
+}
+
+// 笔记表
+model Note {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  type        NoteType
+  title       String?
+  content     String?
+  url         String?
+  description String?
+  domain      String?
+  faviconUrl  String?  @map("favicon_url")
+  imageUrl    String?  @map("image_url")
+  metadata    String   @default("{}")
+  tags        String   @default("")
+  isArchived  Boolean  @default(false) @map("is_archived")
+  isFavorite  Boolean  @default(false) @map("is_favorite")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  accessedAt  DateTime @default(now()) @map("accessed_at")
+
+  // 关联
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collections     NoteCollection[]
+  sharedNotes     SharedNote[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt(sort: Desc)])
+  @@map("notes")
+}
+
+// 收藏夹表
+model Collection {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  name        String
+  description String?
+  color       String   @default("#6B7280")
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // 关联
+  user  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes NoteCollection[]
+
+  @@index([userId])
+  @@map("collections")
+}
+
+// 笔记-收藏夹关联表
+model NoteCollection {
+  noteId       String   @map("note_id")
+  collectionId String   @map("collection_id")
+  addedAt      DateTime @default(now()) @map("added_at")
+
+  // 关联
+  note       Note       @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, collectionId])
+  @@map("note_collections")
+}
+
+// 分享笔记表
+model SharedNote {
+  id           String    @id @default(cuid())
+  noteId       String    @map("note_id")
+  sharedBy     String    @map("shared_by")
+  shareToken   String    @unique @map("share_token")
+  isPublic     Boolean   @default(false) @map("is_public")
+  passwordHash String?   @map("password_hash")
+  expiresAt    DateTime? @map("expires_at")
+  viewCount    Int       @default(0) @map("view_count")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // 关联
+  note User @relation(fields: [sharedBy], references: [id], onDelete: Cascade)
+  noteRef Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([shareToken])
+  @@index([noteId])
+  @@map("shared_notes")
+}
+
+// 枚举类型
+enum NoteType {
+  LINK
+  TEXT
+}
