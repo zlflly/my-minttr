@@ -123,9 +123,9 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
           
           {/* 删除确认覆盖层 */}
           {showDeleteConfirm && (
-            <div className="absolute inset-0 bg-white/95 backdrop-blur-md rounded-xl flex flex-col items-center justify-center z-10 animate-in fade-in-0 zoom-in-95 duration-300 shadow-xl border border-gray-200">
-              <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-lg shadow-lg border border-gray-100">
-                <div className="flex items-center gap-3">
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-10 animate-in fade-in-0 zoom-in-95 duration-200">
+              <div className="flex flex-col items-center gap-3 p-4">
+                <div className="flex items-center gap-2">
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     viewBox="0 0 256 256" 
@@ -173,17 +173,17 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
                       strokeWidth="16"
                     ></path>
                   </svg>
-                  <span className="text-base font-semibold text-gray-900">
+                  <span className="text-sm font-medium text-gray-900">
                     Delete this card?
                   </span>
                 </div>
                 
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleCancelDelete}
-                    className="min-w-[80px] h-9 text-sm hover:bg-gray-50 active:scale-95 transition-all duration-150"
+                    className="min-w-[70px] h-8 text-xs"
                   >
                     Cancel
                   </Button>
@@ -191,7 +191,7 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
                     variant="destructive"
                     size="sm"
                     onClick={handleConfirmDelete}
-                    className="min-w-[110px] h-9 text-sm bg-red-500 hover:bg-red-600 text-white active:scale-95 transition-all duration-150 shadow-md"
+                    className="min-w-[90px] h-8 text-xs bg-red-500 hover:bg-red-600 text-white"
                   >
                     Confirm delete
                   </Button>
@@ -296,9 +296,9 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
         
         {/* 删除确认覆盖层 */}
         {showDeleteConfirm && (
-          <div className="absolute inset-0 bg-white/95 backdrop-blur-md rounded-xl flex flex-col items-center justify-center z-10 animate-in fade-in-0 zoom-in-95 duration-300 shadow-xl border border-gray-200">
-            <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-lg shadow-lg border border-gray-100">
-              <div className="flex items-center gap-3">
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-10 animate-in fade-in-0 zoom-in-95 duration-200">
+            <div className="flex flex-col items-center gap-3 p-4">
+              <div className="flex items-center gap-2">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
                   viewBox="0 0 256 256" 
@@ -346,17 +346,17 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
                     strokeWidth="16"
                   ></path>
                 </svg>
-                <span className="text-base font-semibold text-gray-900">
+                <span className="text-sm font-medium text-gray-900">
                   Delete this card?
                 </span>
               </div>
               
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleCancelDelete}
-                  className="min-w-[80px] h-9 text-sm hover:bg-gray-50 active:scale-95 transition-all duration-150"
+                  className="min-w-[70px] h-8 text-xs"
                 >
                   Cancel
                 </Button>
@@ -364,7 +364,7 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
                   variant="destructive"
                   size="sm"
                   onClick={handleConfirmDelete}
-                  className="min-w-[110px] h-9 text-sm bg-red-500 hover:bg-red-600 text-white active:scale-95 transition-all duration-150 shadow-md"
+                  className="min-w-[90px] h-8 text-xs bg-red-500 hover:bg-red-600 text-white"
                 >
                   Confirm delete
                 </Button>

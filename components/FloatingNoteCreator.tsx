@@ -65,29 +65,33 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
         className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-out"
       >
         <div 
-          className="rounded-3xl w-auto border-[0.5px] border-white/45 shadow-3 backdrop-blur-xl bg-sand-3 overflow-hidden pointer-events-auto max-w-[96%]"
+          className="rounded-3xl w-auto border-[0.5px] border-white/20 shadow-3 backdrop-blur-3xl overflow-hidden pointer-events-auto max-w-[96%]"
           style={{
             padding: "0.5rem 1rem",
             width: isExpanded ? "374px" : "auto",
-            minWidth: isExpanded ? "374px" : "auto"
+            minWidth: isExpanded ? "374px" : "auto",
+            background: "linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2), rgba(255,255,255,0.1))",
+            backdropFilter: "blur(32px) saturate(200%) contrast(120%)",
+            WebkitBackdropFilter: "blur(32px) saturate(200%) contrast(120%)",
+            boxShadow: "0 16px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.2)"
           }}
         >
           <div style={{ opacity: 1, height: "auto", filter: "blur(0px)" }}>
             {isExpanded && (
               <div className="flex flex-col gap-1 py-2" style={{ opacity: 1 }}>
-                <div className="text-sand-12 text-xs font-medium px-3">NEW</div>
+                <div className="text-white/90 text-xs font-medium px-3">NEW</div>
                 
                 {noteTypes.map((noteType, index) => (
                   <div key={noteType.id} style={{ opacity: 1, transform: "none" }}>
                     <div 
-                      className="text-[15px] font-medium text-sand-12 hover:bg-sand-a4 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect cursor-pointer"
+                      className="text-[15px] font-medium text-white/90 hover:bg-white/10 active:bg-white/20 active:scale-95 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-300 ease-out flex items-center justify-between gap-2 cursor-pointer transform-gpu"
                       onClick={() => handleNoteTypeClick(noteType.id)}
                     >
                       <div className="flex items-center gap-2">
                         {noteType.icon}
                         {noteType.label}
                       </div>
-                      <kbd className="rt-reset rt-Kbd bg-sand-a2 text-sand-12 inline-flex align-center justify-center flex-shrink-0 font-normal text-top whitespace-nowrap select-none relative font-size-[.75em] min-w-[1.75em] line-height-[1.7em] box-border px-[.5em] pb-[.05em] word-spacing-[-.1em] border-radius-[calc(var(--radius-factor) * .35em)] height-fit-content color-gray-12 bg-gray-1 box-shadow-[var(--kbd-box-shadow)] transition-[box-shadow .12s, background-color .12s]">
+                      <kbd className="rt-reset rt-Kbd bg-white/20 hover:bg-white/30 active:scale-95 text-white/90 inline-flex align-center justify-center flex-shrink-0 font-normal text-top whitespace-nowrap select-none relative font-size-[.75em] min-w-[1.75em] line-height-[1.7em] box-border px-[.5em] pb-[.05em] word-spacing-[-.1em] border-radius-[calc(var(--radius-factor) * .35em)] height-fit-content transition-all duration-300 ease-out transform-gpu">
                         {noteType.hotkey}
                       </kbd>
                     </div>
@@ -101,7 +105,7 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
                 className="cursor-default w-full"
                 onClick={() => setIsExpanded(!isExpanded)}
               >
-                <div className="text-[15px] font-medium text-sand-12 hover:bg-sand-a4 px-3 py-1.5 rounded-full select-none transition duration-100 ease-out flex items-center gap-2 scale-effect w-full justify-center">
+                <div className="text-[15px] font-medium text-white/90 hover:bg-white/10 active:bg-white/20 active:scale-95 px-3 py-1.5 rounded-full select-none transition-all duration-300 ease-out flex items-center gap-2 w-full justify-center cursor-pointer transform-gpu">
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     viewBox="0 0 256 256" 
