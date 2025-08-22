@@ -63,10 +63,6 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
     <>
       <div 
         className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-out"
-        style={{
-          transform: `translate(-50%, ${isExpanded ? '0.5rem' : '0'})`,
-          opacity: 1
-        }}
       >
         <div 
           className="rounded-3xl w-auto border-[0.5px] border-white/45 shadow-3 backdrop-blur-xl bg-sand-3 overflow-hidden pointer-events-auto max-w-[96%]"
