@@ -1,27 +1,16 @@
 import { NextRequest } from 'next/server'
-import { generateUploadURL, put } from '@vercel/blob'
+import { put } from '@vercel/blob'
 
 export const runtime = 'edge'
 
-// 生成一次性直传 URL（客户端用它进行表单直传）
+// 获取Blob存储状态
 export async function GET() {
   const token = process.env.BLOB_READ_WRITE_TOKEN
   if (!token) {
     return Response.json({ error: 'Missing BLOB_READ_WRITE_TOKEN' }, { status: 500 })
   }
 
-  try {
-    const { url } = await generateUploadURL({
-      token,
-      // 默认 20 分钟有效
-      expires: '20m',
-      // 可选：上传后对象访问策略，前端直传时也可以在表单中覆盖
-      allowedContentTypes: ['image/*', 'text/*', 'application/octet-stream']
-    })
-    return Response.json({ url })
-  } catch (error) {
-    return Response.json({ error: 'Failed to create upload URL' }, { status: 500 })
-  }
+  return Response.json({ status: 'Blob storage ready', token: !!token })
 }
 
 // 直接由服务端接收内容并写入 Blob（适合小文本、已在服务器侧生成的内容）

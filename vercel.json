@@ -3,6 +3,6 @@
   "devCommand": "pnpm dev",
   "installCommand": "pnpm install --no-frozen-lockfile && pnpm prisma generate",
   "env": {
-    "DATABASE_URL": "file:./dev.db"
+    "DATABASE_URL": "@postgres_prisma_url"
   }
 }
