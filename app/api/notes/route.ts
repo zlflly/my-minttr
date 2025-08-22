@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { NoteType } from '@prisma/client'
+
+type NoteType = "LINK" | "TEXT"
 
 // 获取笔记列表
 export async function GET(request: NextRequest) {

@@ -6,6 +6,13 @@ This document outlines the complete backend storage architecture for MTr - a sop
 
 ## 📊 Database Schema Design
 
+### 数据库选择说明
+
+当前项目支持两种数据库配置：
+
+1. **本地开发**: SQLite (便于本地开发和测试)
+2. **生产环境**: PostgreSQL (推荐使用Vercel Postgres)
+
 ### Core Tables
 
 #### 1. Users Table
@@ -250,9 +257,15 @@ interface ImageProcessor {
 ### Recommended Stack for Production
 
 #### Database
-- **Provider**: Neon PostgreSQL or Railway PostgreSQL
+- **Provider**: Vercel Postgres (推荐) 或 Neon PostgreSQL/Railway PostgreSQL
 - **Features**: Auto-scaling, backups, read replicas
 - **Connection**: PgBouncer for connection pooling
+
+### 环境变量配置
+
+在Vercel中使用Postgres时，会自动配置以下环境变量：
+- `POSTGRES_PRISMA_URL`: 用于Prisma Client连接
+- `POSTGRES_URL_NON_POOLING`: 用于直接数据库连接
 
 #### Caching
 - **Provider**: Upstash Redis
@@ -269,11 +282,11 @@ interface ImageProcessor {
 
 ### Environment Configuration
 ```env
-# Database
-DATABASE_URL="postgresql://..."
-DATABASE_POOL_SIZE=20
+# Database (使用Vercel Postgres时会自动设置)
+POSTGRES_PRISMA_URL="..."
+POSTGRES_URL_NON_POOLING="..."
 
-# Redis Cache
+# Redis Cache (可选)
 REDIS_URL="redis://..."
 
 # File Storage
