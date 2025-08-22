@@ -134,7 +134,7 @@ export default function CreateNoteDialog({
         <DialogPrimitive.Content
           ref={ref}
           className={cn(
-            "fixed left-[50%] bottom-0 z-50 grid w-full max-w-[600px] translate-x-[-50%] gap-4 border p-6 shadow-2xl rounded-t-3xl max-h-[90vh] overflow-y-auto duration-500 ease-out",
+            "fixed left-[50%] bottom-0 z-50 grid w-full max-w-[600px] translate-x-[-50%] gap-4 border p-6 shadow-2xl rounded-t-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden duration-500 ease-out",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             "data-[state=closed]:slide-out-to-bottom-56 data-[state=open]:slide-in-from-bottom-56",
@@ -161,8 +161,8 @@ export default function CreateNoteDialog({
               </TabsTrigger>
             </TabsList>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <TabsContent value="link" className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6 overflow-hidden">
+              <TabsContent value="link" className="space-y-4 overflow-hidden">
                 <div className="space-y-2">
                   <Label htmlFor="url">链接地址</Label>
                   <div className="relative">
@@ -173,7 +173,7 @@ export default function CreateNoteDialog({
                       placeholder="https://example.com"
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 w-full overflow-hidden text-ellipsis"
                       required
                     />
                     {isExtractingMetadata && (
@@ -183,7 +183,7 @@ export default function CreateNoteDialog({
                 </div>
 
                 {metadata && (
-                  <Card className="border-dashed">
+                  <Card className="border-dashed overflow-hidden">
                     <CardContent className="p-4">
                       <div className="flex gap-4">
                         {metadata.image && (
@@ -195,15 +195,15 @@ export default function CreateNoteDialog({
                             />
                           </div>
                         )}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 overflow-hidden">
                           <div className="flex items-center gap-2 mb-1">
                             {metadata.favicon && (
-                              <img src={getProxiedImageUrl(metadata.favicon) || metadata.favicon} alt="" className="w-4 h-4" />
+                              <img src={getProxiedImageUrl(metadata.favicon) || metadata.favicon} alt="" className="w-4 h-4 flex-shrink-0" />
                             )}
-                            <span className="text-sm text-muted-foreground">{metadata.domain}</span>
+                            <span className="text-sm text-muted-foreground truncate">{metadata.domain}</span>
                           </div>
                           <h4 className="font-medium truncate">{metadata.title}</h4>
-                          <p className="text-sm text-muted-foreground line-clamp-2">{metadata.description}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-2 break-words">{metadata.description}</p>
                         </div>
                       </div>
                     </CardContent>
