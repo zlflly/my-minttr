@@ -20,6 +20,8 @@ interface NoteCardProps {
 export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
   const [isHidden, setIsHidden] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -46,12 +48,18 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
   }
 
   const handleConfirmDelete = () => {
+    setIsDeleting(true)
+    // 立即调用删除函数，保持加载状态直到组件被销毁
     onDelete?.(note.id)
-    setShowDeleteConfirm(false)
   }
 
   const handleCancelDelete = () => {
-    setShowDeleteConfirm(false)
+    setIsClosing(true)
+    // 等待渐隐动画完成后关闭
+    setTimeout(() => {
+      setShowDeleteConfirm(false)
+      setIsClosing(false)
+    }, 200)
   }
 
   // 如果笔记被隐藏，不渲染
@@ -126,80 +134,104 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
           
           {/* 删除确认覆盖层 */}
           {showDeleteConfirm && (
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-10 animate-in fade-in-0 zoom-in-95 duration-200">
-              <div className="flex flex-col items-center gap-3 p-4">
-                <div className="flex items-center gap-2">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    viewBox="0 0 256 256" 
-                    className="w-5 h-5 text-red-500"
-                  >
-                    <rect width="256" height="256" fill="none"></rect>
-                    <line 
-                      x1="216" y1="56" x2="40" y2="56" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="16"
-                    ></line>
-                    <line 
-                      x1="104" y1="104" x2="104" y2="168" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="16"
-                    ></line>
-                    <line 
-                      x1="152" y1="104" x2="152" y2="168" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="16"
-                    ></line>
-                    <path 
-                      d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="16"
-                    ></path>
-                    <path 
-                      d="M168,56V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V56" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="16"
-                    ></path>
-                  </svg>
-                  <span className="text-sm font-medium text-gray-900">
-                    Delete this card?
-                  </span>
+            <div 
+              className={`absolute inset-0 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-10 transition-all duration-200 ${
+                isClosing 
+                  ? 'animate-out fade-out-0 zoom-out-95' 
+                  : 'animate-in fade-in-0 zoom-in-95'
+              } ${
+                isDeleting 
+                  ? 'bg-[rgb(246,244,240)]/80' 
+                  : 'bg-white/80'
+              }`}
+            >
+              {isDeleting ? (
+                // 删除中状态：显示加载环
+                <div className="flex flex-col items-center justify-center">
+                  <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 </div>
-                
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCancelDelete}
-                    className="min-w-[70px] h-8 text-xs"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleConfirmDelete}
-                    className="min-w-[90px] h-8 text-xs bg-red-500 hover:bg-red-600 text-white"
-                  >
-                    Confirm delete
-                  </Button>
+              ) : (
+                // 确认状态：显示确认对话框
+                <div 
+                  className={`flex flex-col items-center gap-3 p-4 transition-opacity duration-150 ${
+                    isClosing ? 'opacity-0' : 'opacity-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      viewBox="0 0 256 256" 
+                      className="w-5 h-5 text-red-500"
+                    >
+                      <rect width="256" height="256" fill="none"></rect>
+                      <line 
+                        x1="216" y1="56" x2="40" y2="56" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="16"
+                      ></line>
+                      <line 
+                        x1="104" y1="104" x2="104" y2="168" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="16"
+                      ></line>
+                      <line 
+                        x1="152" y1="104" x2="152" y2="168" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="16"
+                      ></line>
+                      <path 
+                        d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="16"
+                      ></path>
+                      <path 
+                        d="M168,56V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V56" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="16"
+                      ></path>
+                    </svg>
+                    <span className="text-sm font-medium text-gray-900">
+                      Delete this card?
+                    </span>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancelDelete}
+                      className="min-w-[70px] h-8 text-xs"
+                      disabled={isDeleting}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleConfirmDelete}
+                      className="min-w-[90px] h-8 text-xs bg-red-500 hover:bg-red-600 text-white"
+                      disabled={isDeleting}
+                    >
+                      Confirm delete
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>
@@ -299,80 +331,104 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
         
         {/* 删除确认覆盖层 */}
         {showDeleteConfirm && (
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-10 animate-in fade-in-0 zoom-in-95 duration-200">
-            <div className="flex flex-col items-center gap-3 p-4">
-              <div className="flex items-center gap-2">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  viewBox="0 0 256 256" 
-                  className="w-5 h-5 text-red-500"
-                >
-                  <rect width="256" height="256" fill="none"></rect>
-                  <line 
-                    x1="216" y1="56" x2="40" y2="56" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="16"
-                  ></line>
-                  <line 
-                    x1="104" y1="104" x2="104" y2="168" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="16"
-                  ></line>
-                  <line 
-                    x1="152" y1="104" x2="152" y2="168" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="16"
-                  ></line>
-                  <path 
-                    d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="16"
-                  ></path>
-                  <path 
-                    d="M168,56V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V56" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="16"
-                  ></path>
-                </svg>
-                <span className="text-sm font-medium text-gray-900">
-                  Delete this card?
-                </span>
+          <div 
+            className={`absolute inset-0 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-10 transition-all duration-200 ${
+              isClosing 
+                ? 'animate-out fade-out-0 zoom-out-95' 
+                : 'animate-in fade-in-0 zoom-in-95'
+            } ${
+              isDeleting 
+                ? 'bg-[rgb(246,244,240)]/80' 
+                : 'bg-white/80'
+            }`}
+          >
+            {isDeleting ? (
+              // 删除中状态：显示加载环
+              <div className="flex flex-col items-center justify-center">
+                <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               </div>
-              
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCancelDelete}
-                  className="min-w-[70px] h-8 text-xs"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleConfirmDelete}
-                  className="min-w-[90px] h-8 text-xs bg-red-500 hover:bg-red-600 text-white"
-                >
-                  Confirm delete
-                </Button>
+            ) : (
+              // 确认状态：显示确认对话框
+              <div 
+                className={`flex flex-col items-center gap-3 p-4 transition-opacity duration-150 ${
+                  isClosing ? 'opacity-0' : 'opacity-100'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 256 256" 
+                    className="w-5 h-5 text-red-500"
+                  >
+                    <rect width="256" height="256" fill="none"></rect>
+                    <line 
+                      x1="216" y1="56" x2="40" y2="56" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="16"
+                    ></line>
+                    <line 
+                      x1="104" y1="104" x2="104" y2="168" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="16"
+                    ></line>
+                    <line 
+                      x1="152" y1="104" x2="152" y2="168" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="16"
+                    ></line>
+                    <path 
+                      d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="16"
+                    ></path>
+                    <path 
+                      d="M168,56V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V56" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="16"
+                    ></path>
+                  </svg>
+                  <span className="text-sm font-medium text-gray-900">
+                    Delete this card?
+                  </span>
+                </div>
+                
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelDelete}
+                    className="min-w-[70px] h-8 text-xs"
+                    disabled={isDeleting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleConfirmDelete}
+                    className="min-w-[90px] h-8 text-xs bg-red-500 hover:bg-red-600 text-white"
+                    disabled={isDeleting}
+                  >
+                    Confirm delete
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>

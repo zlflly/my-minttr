@@ -73,11 +73,15 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
     setIsExpanded(true)
   }
 
   const handleMouseLeave = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
     timeoutRef.current = setTimeout(() => {
       setIsExpanded(false)
     }, 300) // 300ms延迟，避免误触
@@ -103,9 +107,12 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
   }
 
   const handleMainButtonClick = () => {
-    if (isExpanded) {
-      setIsExpanded(false)
+    // 清除任何待定的定时器
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
+    setIsExpanded(!isExpanded)
   }
 
   return (
