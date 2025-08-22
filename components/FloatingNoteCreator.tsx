@@ -70,7 +70,7 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
             padding: "0.5rem 1rem",
             width: isExpanded ? "374px" : "auto",
             minWidth: isExpanded ? "374px" : "auto",
-            background: "linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2), rgba(255,255,255,0.1))",
+            backgroundColor: "rgb(241,240,239)",
             backdropFilter: "blur(32px) saturate(200%) contrast(120%)",
             WebkitBackdropFilter: "blur(32px) saturate(200%) contrast(120%)",
             boxShadow: "0 16px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.2)"
@@ -85,28 +85,34 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
                   animation: "expandIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards"
                 }}
               >
-                <div className="text-white/90 text-xs font-medium px-3 transform translate-y-0 opacity-100 transition-all duration-500 ease-out" style={{ animationDelay: "0.1s" }}>NEW</div>
+                <div className="text-gray-800 text-xs font-medium px-3 transform translate-y-0 opacity-100 transition-all duration-500 ease-out" style={{ animationDelay: "0.1s" }}>NEW</div>
                 
                 {noteTypes.map((noteType, index) => (
                   <div 
                     key={noteType.id} 
                     className="transform translate-y-0 opacity-100" 
                     style={{ 
-                      animation: `slideInUp 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards`,
-                      animationDelay: `${0.2 + index * 0.1}s`,
-                      opacity: 0,
-                      transform: "translateY(20px)"
+                      animationDelay: `${0.2 + index * 0.1}s`
                     }}
                   >
                     <div 
-                      className="text-[15px] font-medium text-white/90 hover:bg-white/10 active:bg-white/20 active:scale-95 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-300 ease-out flex items-center justify-between gap-2 cursor-pointer transform-gpu"
+                      className="text-[15px] font-medium text-gray-800 active:scale-95 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-300 ease-out flex items-center justify-between gap-2 cursor-pointer transform-gpu"
+                      style={{
+                        backgroundColor: 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgb(220,218,216)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent'
+                      }}
                       onClick={() => handleNoteTypeClick(noteType.id)}
                     >
                       <div className="flex items-center gap-2">
                         {noteType.icon}
                         {noteType.label}
                       </div>
-                      <kbd className="rt-reset rt-Kbd bg-white/20 hover:bg-white/30 active:scale-95 text-white/90 inline-flex align-center justify-center flex-shrink-0 font-normal text-top whitespace-nowrap select-none relative font-size-[.75em] min-w-[1.75em] line-height-[1.7em] box-border px-[.5em] pb-[.05em] word-spacing-[-.1em] border-radius-[calc(var(--radius-factor) * .35em)] height-fit-content transition-all duration-300 ease-out transform-gpu">
+                      <kbd className="rt-reset rt-Kbd bg-gray-200 hover:bg-gray-300 active:scale-95 text-gray-800 inline-flex align-center justify-center flex-shrink-0 font-normal text-top whitespace-nowrap select-none relative font-size-[.75em] min-w-[1.75em] line-height-[1.7em] box-border px-[.5em] pb-[.05em] word-spacing-[-.1em] border-radius-[calc(var(--radius-factor) * .35em)] height-fit-content transition-all duration-300 ease-out transform-gpu">
                         {noteType.hotkey}
                       </kbd>
                     </div>
@@ -120,11 +126,11 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
                 className="cursor-default w-full active:scale-95 transition-all duration-300 ease-out transform-gpu"
                 onClick={() => setIsExpanded(!isExpanded)}
               >
-                <div className="text-[15px] font-medium text-white/90 hover:bg-white/10 active:bg-white/20 active:scale-95 px-3 py-1.5 rounded-full select-none transition-all duration-300 ease-out flex items-center gap-2 w-full justify-center cursor-pointer transform-gpu">
+                <div className="text-[15px] font-medium text-gray-800 active:scale-95 px-3 py-1.5 rounded-full select-none transition-all duration-300 ease-out flex items-center gap-2 w-full justify-center cursor-pointer transform-gpu" style={{ backgroundColor: 'rgb(241,240,239)' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgb(220,218,216)' }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgb(241,240,239)' }}>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     viewBox="0 0 256 256" 
-                    className="w-[1em] h-[1em] text-current"
+                    className="w-[1em] h-[1em] text-gray-800"
                     style={{
                       transform: isExpanded ? "rotate(45deg)" : "rotate(0deg)",
                       transformOrigin: "50% 50%",

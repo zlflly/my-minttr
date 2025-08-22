@@ -133,12 +133,13 @@ export default function CreateNoteDialog({
         <DialogPrimitive.Content
           ref={ref}
           className={cn(
-            "fixed left-[50%] bottom-0 z-50 grid w-full max-w-[600px] translate-x-[-50%] gap-4 border bg-background p-6 shadow-2xl rounded-t-3xl max-h-[90vh] overflow-y-auto duration-500 ease-out",
+            "fixed left-[50%] bottom-0 z-50 grid w-full max-w-[600px] translate-x-[-50%] gap-4 border p-6 shadow-2xl rounded-t-3xl max-h-[90vh] overflow-y-auto duration-500 ease-out",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             "data-[state=closed]:slide-out-to-bottom-56 data-[state=open]:slide-in-from-bottom-56",
             "sm:max-w-[600px] sm:bottom-0 sm:rounded-t-3xl"
           )}
+          style={{ backgroundColor: 'rgb(241,240,239)' }}
         >
           <div className="flex flex-col space-y-1.5 text-center sm:text-left mb-6">
             <DialogTitle className="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
