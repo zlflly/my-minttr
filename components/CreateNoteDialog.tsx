@@ -97,8 +97,8 @@ export default function CreateNoteDialog({
     try {
       const noteData = {
         type: activeTab.toUpperCase() as "LINK" | "TEXT",
-        title: title.trim() || undefined,
-        description: description.trim() || undefined,
+        title: title.trim() || metadata?.title || undefined,
+        description: description.trim() || metadata?.description || undefined,
         content: activeTab === "text" ? content.trim() : undefined,
         url: activeTab === "link" ? url.trim() : undefined,
         domain: metadata?.domain,
