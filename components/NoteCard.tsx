@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, ExternalLink } from "lucide-react"
 import NoteContextMenu from "./ContextMenu"
 import { useState } from "react"
+import { getProxiedImageUrl } from "@/lib/image-proxy"
 
 interface NoteCardProps {
   note: Note
@@ -65,9 +66,11 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
           {note.imageUrl && (
             <div className="aspect-video w-full overflow-hidden">
               <img 
-                src={note.imageUrl || "/placeholder.svg"} 
+                src={getProxiedImageUrl(note.imageUrl) || "/placeholder.svg"} 
                 alt={note.title} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                referrerPolicy="no-referrer"
+                crossOrigin="anonymous"
               />
             </div>
           )}
@@ -98,7 +101,7 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs text-[#A3A3A3]">
                 {note.faviconUrl && (
-                  <img src={note.faviconUrl || "/placeholder.svg"} alt="" className="w-4 h-4 rounded-sm" />
+                  <img src={getProxiedImageUrl(note.faviconUrl) || "/placeholder.svg"} alt="" className="w-4 h-4 rounded-sm" />
                 )}
                 <span>{note.domain}</span>
               </div>

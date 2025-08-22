@@ -14,6 +14,7 @@ import { Loader2, Link, FileText, Globe, Image, Tag, X } from "lucide-react"
 import { createNote, extractMetadata, isValidUrl } from "@/lib/api"
 import type { Note } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import { getProxiedImageUrl } from "@/lib/image-proxy"
 
 interface CreateNoteDialogProps {
   onNoteCreated: (note: Note) => void
@@ -188,7 +189,7 @@ export default function CreateNoteDialog({
                         {metadata.image && (
                           <div className="flex-shrink-0">
                             <img
-                              src={metadata.image}
+                              src={getProxiedImageUrl(metadata.image) || metadata.image}
                               alt="预览"
                               className="w-16 h-16 object-cover rounded"
                             />
@@ -197,7 +198,7 @@ export default function CreateNoteDialog({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             {metadata.favicon && (
-                              <img src={metadata.favicon} alt="" className="w-4 h-4" />
+                              <img src={getProxiedImageUrl(metadata.favicon) || metadata.favicon} alt="" className="w-4 h-4" />
                             )}
                             <span className="text-sm text-muted-foreground">{metadata.domain}</span>
                           </div>

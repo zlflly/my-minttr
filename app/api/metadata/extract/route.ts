@@ -152,46 +152,72 @@ function extractImage(html: string, baseUrl: string): string | null {
 
 // 提取哔哩哔哩视频封面
 function extractBilibiliCover(html: string, baseUrl: string): string | null {
-  // 尝试从JSON-LD数据中提取封面
+  // 优先从og:image meta标签提取（最可靠的方式）
+  const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i)
+  if (ogImageMatch && ogImageMatch[1]) {
+    let coverUrl = ogImageMatch[1].trim()
+    
+    // 处理协议缺失的情况：//i0.hdslb.com/... → https://i0.hdslb.com/...
+    if (coverUrl.startsWith('//')) {
+      coverUrl = 'https:' + coverUrl
+    }
+    
+    // 移除B站URL中的尺寸参数，获取原图
+    // 例如：.../cover.jpg@672w_378h_1c_!web-search-common-cover.jpg → .../cover.jpg
+    coverUrl = coverUrl.replace(/@.*$/, '')
+    
+    return coverUrl
+  }
+  
+  // 备选方案：从JSON-LD数据中提取封面
   const jsonLdMatch = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([^<]+)<\/script>/i)
   if (jsonLdMatch) {
     try {
       const jsonData = JSON.parse(jsonLdMatch[1])
       if (jsonData.thumbnailUrl) {
-        return jsonData.thumbnailUrl
+        let coverUrl = jsonData.thumbnailUrl
+        if (coverUrl.startsWith('//')) {
+          coverUrl = 'https:' + coverUrl
+        }
+        return coverUrl.replace(/@.*$/, '')
       }
     } catch (e) {
       console.log('解析JSON-LD失败:', e)
     }
   }
   
-  // 尝试从window.__INITIAL_STATE__中提取
+  // 备选方案：从window.__INITIAL_STATE__中提取
   const initialStateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*({.+?});?\s*\(function/s)
   if (initialStateMatch) {
     try {
       const stateData = JSON.parse(initialStateMatch[1])
-      if (stateData?.videoData?.pic) {
-        return stateData.videoData.pic
-      }
-      if (stateData?.videoInfo?.pic) {
-        return stateData.videoInfo.pic
+      const picUrl = stateData?.videoData?.pic || stateData?.videoInfo?.pic
+      if (picUrl) {
+        let coverUrl = picUrl
+        if (coverUrl.startsWith('//')) {
+          coverUrl = 'https:' + coverUrl
+        }
+        return coverUrl.replace(/@.*$/, '')
       }
     } catch (e) {
       console.log('解析INITIAL_STATE失败:', e)
     }
   }
   
-  // 尝试从meta标签中提取封面
-  const coverPatterns = [
-    /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i,
+  // 最后备选：其他meta标签
+  const otherPatterns = [
     /<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i,
     /<meta[^>]*itemprop=["']image["'][^>]*content=["']([^"']+)["']/i
   ]
   
-  for (const pattern of coverPatterns) {
+  for (const pattern of otherPatterns) {
     const match = html.match(pattern)
     if (match && match[1]) {
-      return resolveUrl(match[1], baseUrl)
+      let coverUrl = match[1]
+      if (coverUrl.startsWith('//')) {
+        coverUrl = 'https:' + coverUrl
+      }
+      return coverUrl.replace(/@.*$/, '')
     }
   }
   
