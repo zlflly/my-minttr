@@ -38,6 +38,7 @@ export class FocusManager {
 
   // 获取容器内所有可聚焦元素
   static getFocusableElements(container: HTMLElement): HTMLElement[] {
+    if (typeof document === 'undefined') return [];
     return Array.from(
       container.querySelectorAll<HTMLElement>(this.focusableSelectors)
     ).filter(element => this.isVisible(element));
@@ -45,6 +46,7 @@ export class FocusManager {
 
   // 检查元素是否可见
   static isVisible(element: HTMLElement): boolean {
+    if (typeof window === 'undefined') return false;
     const style = window.getComputedStyle(element);
     return (
       style.display !== 'none' &&
@@ -83,6 +85,8 @@ export class FocusManager {
     const handleTabKeyPress = (e: KeyboardEvent) => {
       if (e.key !== KeyboardKeys.TAB) return;
 
+      if (typeof document === 'undefined') return;
+      
       if (e.shiftKey) {
         // Shift + Tab: 如果当前是第一个元素，跳转到最后一个
         if (document.activeElement === firstFocusable) {
@@ -114,7 +118,10 @@ export class ScreenReaderAnnouncer {
   private politeRegion: HTMLElement | null = null;
 
   private constructor() {
-    this.createLiveRegions();
+    // Only create live regions in browser environment
+    if (typeof window !== 'undefined') {
+      this.createLiveRegions();
+    }
   }
 
   static getInstance(): ScreenReaderAnnouncer {
@@ -125,6 +132,9 @@ export class ScreenReaderAnnouncer {
   }
 
   private createLiveRegions(): void {
+    // Only create DOM elements in browser environment
+    if (typeof document === 'undefined') return;
+    
     // 创建assertive live region（立即公告，会打断其他内容）
     this.liveRegion = document.createElement('div');
     this.liveRegion.setAttribute('aria-live', 'assertive');
@@ -245,11 +255,12 @@ export function getScreenReaderText(condition: boolean, trueText: string, falseT
 
 // React Hook for accessibility
 export function useAccessibility() {
-  const announcer = ScreenReaderAnnouncer.getInstance();
+  // Only create announcer in browser environment
+  const announcer = typeof window !== 'undefined' ? ScreenReaderAnnouncer.getInstance() : null;
   
   return {
-    announce: announcer.announce.bind(announcer),
-    announcePolitely: announcer.announcePolitely.bind(announcer),
+    announce: announcer ? announcer.announce.bind(announcer) : () => {},
+    announcePolitely: announcer ? announcer.announcePolitely.bind(announcer) : () => {},
     generateId,
     FocusManager,
     KeyboardKeys,

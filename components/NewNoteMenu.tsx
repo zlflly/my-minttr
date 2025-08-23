@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+'use client';
+
+import React, { useState, useRef, useEffect, useId } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImageIcon, LinkIcon, MindIcon, PlusIcon } from './PhotoIcons';
 import PhotoUploader from './PhotoUploader';
@@ -87,9 +89,12 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   
   // 可访问性工具
-  const { announce, generateId } = useAccessibility();
-  const menuId = generateId('new-note-menu');
-  const menuButtonId = generateId('menu-button');
+  const { announce } = useAccessibility();
+  
+  // 使用 React 18 的 useId hook 生成稳定的 ID
+  const id = useId();
+  const menuId = `new-note-menu-${id}`;
+  const menuButtonId = `menu-button-${id}`;
 
   useEffect(() => {
     return () => {

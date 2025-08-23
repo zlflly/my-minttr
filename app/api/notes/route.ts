@@ -14,26 +14,25 @@ import {
   sanitizeString,
   sanitizeUrl
 } from '@/lib/validation';
-import type { NoteType } from '@/lib/types';
+import type { NoteType, APIError as APIErrorInterface } from '@/lib/types';
+import { handleError } from '@/lib/error-handler';
 
-// 查询验证模式
-const notesQuerySchema = paginationSchema.extend({
-  type: noteTypeSchema.optional(),
-}).transform((data) => {
-  const page = Number(data.page) || 1;
-  const limit = Math.min(Number(data.limit) || 20, 100);
-  const type = data.type as NoteType | undefined;
+// 查询验证模式 - 手动处理查询参数
+const parseQuery = (searchParams: URLSearchParams) => {
+  const page = parseInt(searchParams.get('page') || '1', 10) || 1;
+  const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10) || 20, 100);
+  const typeParam = searchParams.get('type');
+  const type = typeParam && ['LINK', 'TEXT', 'IMAGE'].includes(typeParam) 
+    ? typeParam as NoteType 
+    : undefined;
+  
   return { page, limit, type };
-});
+};
 
 // 获取笔记列表
-export const GET = withQueryValidation(
-  notesQuerySchema,
-  async (request: NextRequest, validatedQuery) => {
-    const { page = 1, limit = 20, type } = validatedQuery;
-    // 确保page和limit是数字
-    const safePage = Number(page) || 1;
-    const safeLimit = Number(limit) || 20;
+export async function GET(request: NextRequest) {
+  try {
+    const { page, limit, type } = parseQuery(request.nextUrl.searchParams);
     
     // 为演示目的，现在使用一个默认用户ID
     const defaultUserId = 'demo-user';
@@ -49,8 +48,8 @@ export const GET = withQueryValidation(
         prisma.note.findMany({
           where,
           orderBy: { createdAt: 'desc' },
-          skip: (safePage - 1) * safeLimit,
-          take: safeLimit,
+          skip: (page - 1) * limit,
+          take: limit,
           // 只选择必要的字段，提高性能
           select: {
             id: true,
@@ -80,20 +79,44 @@ export const GET = withQueryValidation(
           notes,
           undefined,
           {
-            page: safePage,
-            limit: safeLimit,
+            page,
+            limit,
             total,
-            totalPages: Math.ceil(total / safeLimit),
+            totalPages: Math.ceil(total / limit),
           }
         ),
         { headers: securityHeaders() }
       );
     } catch (error) {
       console.error('获取笔记失败:', error);
-      throw new Error('数据库操作失败');
+      return NextResponse.json(
+        createAPIResponse(undefined, {
+          code: 'FETCH_NOTES_ERROR',
+          message: '获取笔记失败'
+        }),
+        { 
+          status: 500,
+          headers: securityHeaders()
+        }
+      );
     }
+  } catch (error) {
+    console.error('获取笔记列表失败:', error);
+    if (error instanceof Error) {
+      handleError(error);
+    }
+    return NextResponse.json(
+      createAPIResponse(undefined, {
+        code: 'FETCH_NOTES_ERROR',
+        message: error instanceof Error ? error.message : '获取笔记列表失败'
+      }),
+      { 
+        status: 500,
+        headers: securityHeaders()
+      }
+    );
   }
-);
+}
 
 // 创建新笔记
 export const POST = withValidation(

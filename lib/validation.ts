@@ -52,10 +52,10 @@ export const metadataExtractionSchema = z.object({
   url: urlSchema,
 });
 
-// 分页验证模式
+// 分页验证模式 - 查询参数都是字符串
 export const paginationSchema = z.object({
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(20),
+  page: z.string().transform(val => parseInt(val, 10) || 1).pipe(z.number().int().min(1)),
+  limit: z.string().transform(val => Math.min(parseInt(val, 10) || 20, 100)).pipe(z.number().int().min(1).max(100)),
 });
 
 // 类型安全的输入清理函数

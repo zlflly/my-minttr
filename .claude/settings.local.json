@@ -13,7 +13,9 @@
       "Bash(node:*)",
       "Bash(timeout:*)",
       "Bash(npx tsc:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(grep:*)",
+      "Read(/D:\\User\\Desktop\\项目\\my_minttr/**)"
     ],
     "deny": [],
     "ask": []

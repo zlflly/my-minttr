@@ -82,13 +82,16 @@ const USER_FRIENDLY_MESSAGES = {
 // 错误处理器类
 export class ErrorHandler {
   private static instance: ErrorHandler;
-  private announcer: ScreenReaderAnnouncer;
+  private announcer?: ScreenReaderAnnouncer;
   private errorLog: AppError[] = [];
   private maxLogSize = 100;
 
   private constructor() {
-    this.announcer = ScreenReaderAnnouncer.getInstance();
-    this.setupGlobalErrorHandlers();
+    // 只在浏览器环境中初始化
+    if (typeof window !== 'undefined') {
+      this.announcer = ScreenReaderAnnouncer.getInstance();
+      this.setupGlobalErrorHandlers();
+    }
   }
 
   static getInstance(): ErrorHandler {
@@ -211,11 +214,18 @@ export class ErrorHandler {
   private notifyUser(error: AppError): void {
     const userMessage = this.getUserFriendlyMessage(error);
     
-    // 屏幕阅读器公告
-    if (error.severity === ErrorSeverity.HIGH || error.severity === ErrorSeverity.CRITICAL) {
-      this.announcer.announce(userMessage);
-    } else {
-      this.announcer.announcePolitely(userMessage);
+    // 屏幕阅读器公告 - 只在浏览器环境中
+    if (typeof window !== 'undefined' && this.announcer) {
+      try {
+        if (error.severity === ErrorSeverity.HIGH || error.severity === ErrorSeverity.CRITICAL) {
+          this.announcer.announce(userMessage);
+        } else {
+          this.announcer.announcePolitely(userMessage);
+        }
+      } catch (announcerError) {
+        // 如果屏幕阅读器公告失败，不应该影响整个错误处理流程
+        console.warn('Failed to announce error to screen reader:', announcerError);
+      }
     }
     
     // 这里可以集成toast通知系统

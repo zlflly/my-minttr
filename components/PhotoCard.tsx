@@ -141,15 +141,16 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
       <div className="relative m-1 rounded-lg overflow-hidden aspect-square w-[calc(100%-8px)]">
         {/* Blurred background */}
         <div className="absolute inset-0 blur-xl">
-          <LazyImage 
+          <img 
             src={photoNote.imageUrl}
             alt="" 
             className="w-[120%] h-[120%] object-cover opacity-50" 
+            style={{ transform: 'translate(-10%, -10%)' }}
           />
         </div>
         
         {/* Main image */}
-        <LazyImage 
+        <img 
           src={photoNote.imageUrl}
           alt={photoNote.imageAlt || "image"} 
           className="relative w-full h-full object-contain mx-auto rounded-lg cursor-pointer hover:scale-105 transition-transform duration-200" 
