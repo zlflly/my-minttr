@@ -19,7 +19,8 @@
       "Bash(pnpm install:*)",
       "Bash(del pnpm-lock.yaml)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []
