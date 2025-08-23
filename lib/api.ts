@@ -60,16 +60,25 @@ function handleAPIError(error: unknown, context: string): never {
 }
 
 // 获取笔记列表
-export async function fetchNotes(page = 1, limit = 20): Promise<APIResponse<Note[]>> {
+export async function fetchNotes(page = 1, limit = 20, search?: string): Promise<APIResponse<Note[]>> {
   try {
-    // 检查缓存
-    const cacheKey = generateCacheKey.notes(page, limit)
-    const cachedData = apiCache.get(cacheKey) as APIResponse<Note[]> | null
+    // 检查缓存 - 搜索请求不缓存
+    const cacheKey = generateCacheKey.notes(page, limit, search)
+    const cachedData = !search ? apiCache.get(cacheKey) as APIResponse<Note[]> | null : null
     if (cachedData) {
       return cachedData
     }
 
-    const response = await fetch(`/api/notes?page=${page}&limit=${limit}`);
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    
+    if (search) {
+      params.append('search', search);
+    }
+
+    const response = await fetch(`/api/notes?${params.toString()}`);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -83,8 +92,8 @@ export async function fetchNotes(page = 1, limit = 20): Promise<APIResponse<Note
     
     const data = await response.json();
     
-    // 缓存成功的响应（1分钟TTL，因为笔记可能经常更新）
-    if (data.success) {
+    // 缓存成功的响应（1分钟TTL，因为笔记可能经常更新）- 但不缓存搜索结果
+    if (data.success && !search) {
       apiCache.set(cacheKey, data, 60 * 1000)
     }
     

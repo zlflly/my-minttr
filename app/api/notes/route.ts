@@ -25,14 +25,15 @@ const parseQuery = (searchParams: URLSearchParams) => {
   const type = typeParam && ['LINK', 'TEXT', 'IMAGE'].includes(typeParam) 
     ? typeParam as NoteType 
     : undefined;
+  const search = searchParams.get('search')?.trim() || undefined;
   
-  return { page, limit, type };
+  return { page, limit, type, search };
 };
 
 // 获取笔记列表
 export async function GET(request: NextRequest) {
   try {
-    const { page, limit, type } = parseQuery(request.nextUrl.searchParams);
+    const { page, limit, type, search } = parseQuery(request.nextUrl.searchParams);
     
     // 为演示目的，现在使用一个默认用户ID
     const defaultUserId = 'demo-user';
@@ -41,6 +42,14 @@ export async function GET(request: NextRequest) {
       userId: defaultUserId,
       isArchived: false,
       ...(type && { type }),
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' as const } },
+          { content: { contains: search, mode: 'insensitive' as const } },
+          { description: { contains: search, mode: 'insensitive' as const } },
+          { tags: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }),
     };
 
     try {

@@ -22,14 +22,17 @@ import {
   KeyboardKeys, 
   createAriaProps 
 } from "@/lib/accessibility"
+import HighlightText from "./HighlightText"
+import MarkdownWithHighlight from "./MarkdownWithHighlight"
 
 interface NoteCardProps {
   note: Note
   onDelete?: (noteId: string) => void
   onNoteUpdate?: (updatedNote: Note) => void
+  searchTerm?: string
 }
 
-export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps) {
+export default function NoteCard({ note, onDelete, onNoteUpdate, searchTerm = "" }: NoteCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -181,6 +184,7 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
         onHide={handleHide}
         onColorChange={handleColorChange}
         onNoteUpdated={handleNoteUpdated}
+        searchTerm={searchTerm}
       />
     );
   }
@@ -206,13 +210,13 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
           <div className="p-4">
             {note.title && (
               <h3 className="font-semibold text-[#1C1917] text-lg mb-2 leading-tight group-hover:text-blue-600 transition-colors">
-                {note.title}
+                <HighlightText text={note.title} searchTerm={searchTerm} />
               </h3>
             )}
             
             {note.description && (
               <p className="text-[#57534E] text-sm leading-relaxed mb-3 line-clamp-3">
-                {note.description}
+                <HighlightText text={note.description} searchTerm={searchTerm} />
               </p>
             )}
 
@@ -221,7 +225,7 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
               <div className="flex flex-wrap gap-1 mb-3">
                 {getTags().map((tag, index) => (
                   <Badge key={index} variant="secondary" className="text-xs">
-                    {tag}
+                    <HighlightText text={tag} searchTerm={searchTerm} />
                   </Badge>
                 ))}
               </div>
@@ -378,11 +382,16 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
       >
         {note.title && (
           <h3 className="font-semibold text-[#1C1917] text-lg mb-3">
-            {note.title}
+            <HighlightText text={note.title} searchTerm={searchTerm} />
           </h3>
         )}
 
-        <div className="prose prose-sm prose-zinc max-w-none">
+        <MarkdownWithHighlight
+          content={note.content || ""}
+          searchTerm={searchTerm}
+          className="prose prose-sm prose-zinc max-w-none"
+        />
+        {/* <div className="prose prose-sm prose-zinc max-w-none">
           <ReactMarkdown
             remarkPlugins={[remarkMath, remarkGfm]}
             rehypePlugins={[rehypeKatex, rehypeHighlight]}
@@ -445,14 +454,14 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
           >
             {note.content}
           </ReactMarkdown>
-        </div>
+        </div> */}
 
         {/* 标签和日期 */}
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
           <div className="flex flex-wrap gap-1">
             {getTags().map((tag, index) => (
               <Badge key={index} variant="secondary" className="text-xs">
-                {tag}
+                <HighlightText text={tag} searchTerm={searchTerm} />
               </Badge>
             ))}
           </div>

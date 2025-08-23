@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { updateNote } from '@/lib/api';
 import type { Note } from '@/lib/api';
 import LazyImage from './LazyImage';
+import HighlightText from './HighlightText';
 
 interface PhotoCardProps {
   photoNote: PhotoNote;
@@ -16,6 +17,7 @@ interface PhotoCardProps {
   onHide?: () => void;
   onColorChange?: (color: "default" | "pink" | "blue" | "green") => void;
   onNoteUpdated?: (updatedNote: Note) => void; // 添加笔记更新回调
+  searchTerm?: string; // 添加搜索词
 }
 
 const PhotoCard: React.FC<PhotoCardProps> = ({ 
@@ -25,7 +27,8 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
   onDelete, 
   onHide, 
   onColorChange, 
-  onNoteUpdated 
+  onNoteUpdated,
+  searchTerm = ""
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -174,11 +177,7 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
         <>
           <div className="bg-mi-amber-2 overflow-hidden p-3 rounded-lg my-[5px] mx-[5px] shadow-border-amber">
             <div className="prose prose-zinc text-mi-sm line-clamp-12 sm:line-clamp-16 prose-li:marker:text-sand-11 subpixel-antialiased prose-headings:antialiased">
-              <div 
-                dangerouslySetInnerHTML={{ 
-                  __html: photoNote.note.replace(/\*\*(.*?)\*\*/g, '<mark>$1</mark>') 
-                }} 
-              />
+              <HighlightText text={photoNote.note} searchTerm={searchTerm} />
             </div>
           </div>
           
@@ -192,7 +191,7 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
         <div className="flex flex-wrap gap-1">
           {getTags().map((tag, index) => (
             <Badge key={index} variant="secondary" className="text-xs">
-              {tag}
+              <HighlightText text={tag} searchTerm={searchTerm} />
             </Badge>
           ))}
         </div>

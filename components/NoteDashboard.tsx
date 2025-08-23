@@ -3,8 +3,10 @@
 import type React from "react"
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Loader2, Calendar } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import NoteCard from "./NoteCard"
 import NewNoteMenu from "./NewNoteMenu"
+import SearchBar from "./SearchBar"
 import { Button } from "@/components/ui/button"
 import { fetchNotes, deleteNote } from "@/lib/api"
 import type { Note, ThrottledFunction } from "@/lib/types"
@@ -14,11 +16,14 @@ export default function NoteDashboard() {
   const [notes, setNotes] = useState<Note[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [totalNotes, setTotalNotes] = useState(0)
   const [daysSinceStart, setDaysSinceStart] = useState(0)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isSearchMode, setIsSearchMode] = useState(false)
 
   // 计算网站运行天数
   useEffect(() => {
@@ -40,16 +45,20 @@ export default function NoteDashboard() {
   }, [])
 
   // 获取笔记列表
-  const loadNotes = async (page = 1, append = false) => {
+  const loadNotes = async (page = 1, append = false, search?: string) => {
     try {
       if (!append) {
-        setIsLoading(true)
+        if (search) {
+          setIsSearching(true)
+        } else {
+          setIsLoading(true)
+        }
       } else {
         setIsLoadingMore(true)
       }
       setError(null)
       
-      const response = await fetchNotes(page, 20)
+      const response = await fetchNotes(page, 20, search)
       if (response.success && response.data) {
         // 过滤无效的笔记对象
         const validNotes = response.data.filter(note => note && note.id && typeof note.id === 'string')
@@ -74,7 +83,24 @@ export default function NoteDashboard() {
     } finally {
       setIsLoading(false)
       setIsLoadingMore(false)
+      setIsSearching(false)
     }
+  }
+
+  // 搜索处理
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query)
+    setIsSearchMode(true)
+    setCurrentPage(1)
+    await loadNotes(1, false, query)
+  }
+
+  // 清空搜索
+  const handleClearSearch = async () => {
+    setSearchQuery("")
+    setIsSearchMode(false)
+    setCurrentPage(1)
+    await loadNotes(1, false)
   }
 
   // 加载更多笔记
@@ -82,9 +108,9 @@ export default function NoteDashboard() {
     if (!isLoadingMore && hasMore) {
       const nextPage = currentPage + 1
       setCurrentPage(nextPage)
-      await loadNotes(nextPage, true)
+      await loadNotes(nextPage, true, isSearchMode ? searchQuery : undefined)
     }
-  }, [currentPage, hasMore, isLoadingMore])
+  }, [currentPage, hasMore, isLoadingMore, isSearchMode, searchQuery])
 
   // 节流函数
   const throttle = useCallback(<T extends (...args: unknown[]) => void>(
@@ -108,14 +134,14 @@ export default function NoteDashboard() {
       const hasReachedBottom = window.innerHeight + document.documentElement.scrollTop 
         >= document.documentElement.offsetHeight - scrollThreshold;
       
-      if (hasReachedBottom && hasMore && !isLoadingMore) {
+      if (hasReachedBottom && hasMore && !isLoadingMore && !isSearching) {
         loadMore();
       }
     }, 200); // 200ms 节流
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [loadMore, hasMore, isLoadingMore, throttle]);
+  }, [loadMore, hasMore, isLoadingMore, isSearching, throttle]);
 
   // 组件挂载时加载笔记
   useEffect(() => {
@@ -184,72 +210,118 @@ export default function NoteDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F6F4F0] p-4">
+      {/* 搜索栏 */}
+      <SearchBar
+        onSearch={handleSearch}
+        onClear={handleClearSearch}
+        isLoading={isSearching}
+        placeholder="搜索笔记内容、标题、描述、标签..."
+      />
+
       {/* 内容区域 */}
-      {isLoading && notes.length === 0 ? (
-        <DashboardSkeleton />
-      ) : error ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <p className="text-red-500 mb-4">{error}</p>
-          <Button 
-            onClick={() => loadNotes(1, false)}
-            variant="outline"
-            className="text-[#1C1917] border-[#1C1917]"
-          >
-            重试
-          </Button>
-        </div>
-      ) : notes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12">
+      <div className="">
+        {/* 搜索状态提示 */}
+        {isSearchMode && (
           <div className="text-center">
-            <h3 className="text-xl font-medium text-[#1C1917] mb-2">
-              还没有笔记
-            </h3>
-            <p className="text-[#A3A3A3] mb-6">
-              点击底部按钮创建你的第一个笔记
+            <p className="text-[#A3A3A3] text-sm">
+              搜索 "{searchQuery}" 的结果：{notes.length} 条
             </p>
           </div>
-        </div>
-      ) : (
-        <>
-          {/* Masonry layout */}
-          <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
-            {notes
-              .filter((note): note is Note => {
-                try {
-                  return Boolean(
-                    note && 
-                    typeof note === 'object' && 
-                    'id' in note &&
-                    note.id && 
-                    typeof note.id === 'string' &&
-                    note.id.length > 0 &&
-                    'type' in note &&
-                    ['LINK', 'TEXT', 'IMAGE'].includes(note.type as string)
-                  );
-                } catch (error) {
-                  console.warn('Invalid note object:', note, error);
-                  return false;
-                }
-              })
-              .map((note) => {
-                try {
-                  return (
-                    <div key={`note-${note.id}`} className="break-inside-avoid">
-                      <NoteCard 
-                        note={note} 
-                        onDelete={handleNoteDelete}
-                        onNoteUpdate={handleNoteUpdate}
-                      />
-                    </div>
-                  )
-                } catch (error) {
-                  console.error('Error rendering note:', note.id, error)
-                  return null
-                }
-              })
-              .filter(Boolean)
-            }
+        )}
+
+        {/* 内容区域 */}
+        {(isLoading || isSearching) && notes.length === 0 ? (
+          <DashboardSkeleton />
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <p className="text-red-500 mb-4">{error}</p>
+            <Button 
+              onClick={() => isSearchMode ? handleSearch(searchQuery) : loadNotes(1, false)}
+              variant="outline"
+              className="text-[#1C1917] border-[#1C1917]"
+            >
+              重试
+            </Button>
           </div>
+        ) : notes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="text-center">
+              <h3 className="text-xl font-medium text-[#1C1917] mb-2">
+                {isSearchMode ? "未找到相关笔记" : "还没有笔记"}
+              </h3>
+              <p className="text-[#A3A3A3] mb-6">
+                {isSearchMode 
+                  ? `没有找到包含 "${searchQuery}" 的笔记` 
+                  : "点击底部按钮创建你的第一个笔记"
+                }
+              </p>
+              {isSearchMode && (
+                <Button 
+                  onClick={handleClearSearch}
+                  variant="outline"
+                  className="text-[#1C1917] border-[#1C1917]"
+                >
+                  查看所有笔记
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Masonry layout with animations */}
+            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
+              <AnimatePresence mode="popLayout">
+                {notes
+                  .filter((note): note is Note => {
+                    try {
+                      return Boolean(
+                        note && 
+                        typeof note === 'object' && 
+                        'id' in note &&
+                        note.id && 
+                        typeof note.id === 'string' &&
+                        note.id.length > 0 &&
+                        'type' in note &&
+                        ['LINK', 'TEXT', 'IMAGE'].includes(note.type as string)
+                      );
+                    } catch (error) {
+                      console.warn('Invalid note object:', note, error);
+                      return false;
+                    }
+                  })
+                  .map((note) => {
+                    try {
+                      return (
+                        <motion.div 
+                          key={`note-${note.id}`}
+                          className="break-inside-avoid"
+                          layout
+                          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                          transition={{
+                            duration: 0.3,
+                            ease: "easeOut",
+                            layout: { duration: 0.3 }
+                          }}
+                        >
+                          <NoteCard 
+                            note={note} 
+                            onDelete={handleNoteDelete}
+                            onNoteUpdate={handleNoteUpdate}
+                            searchTerm={isSearchMode ? searchQuery : ""}
+                          />
+                        </motion.div>
+                      )
+                    } catch (error) {
+                      console.error('Error rendering note:', note.id, error)
+                      return null
+                    }
+                  })
+                  .filter(Boolean)
+                }
+              </AnimatePresence>
+            </div>
           
           {/* 加载更多指示器 - 使用骨架屏 */}
           {isLoadingMore && <LoadMoreSkeleton />}
@@ -276,8 +348,9 @@ export default function NoteDashboard() {
               </Button>
             </div>
           )}
-        </>
-      )}
+          </>
+        )}
+      </div>
       
       {/* New Note Menu */}
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">

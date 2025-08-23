@@ -58,8 +58,8 @@ if (typeof window !== 'undefined') {
 
 // 缓存键生成器
 export const generateCacheKey = {
-  notes: (page: number, limit: number, type?: string) => 
-    `notes:${page}:${limit}${type ? `:${type}` : ''}`,
+  notes: (page: number, limit: number, search?: string, type?: string) => 
+    `notes:${page}:${limit}${search ? `:search:${search}` : ''}${type ? `:${type}` : ''}`,
   note: (id: string) => `note:${id}`,
   metadata: (url: string) => `metadata:${btoa(url)}`, // base64编码URL避免特殊字符
   image: (url: string) => `image:${btoa(url)}`
