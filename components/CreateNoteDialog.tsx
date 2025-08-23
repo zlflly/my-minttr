@@ -72,6 +72,18 @@ export default function CreateNoteDialog({
     setActiveTab(initialTab)
   }, [initialTab])
 
+  // 当对话框打开时，设置 contentEditable 的内容
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        const editableDiv = document.querySelector('[contenteditable="true"][data-placeholder="Add description (optional)"]') as HTMLDivElement
+        if (editableDiv) {
+          editableDiv.textContent = description || ""
+        }
+      }, 100)
+    }
+  }, [open, description])
+
   // 平滑切换标签 - 使用对称快速模糊过渡
   const handleTabChange = (value: string) => {
     const newTab = value as "link" | "text"
@@ -175,10 +187,10 @@ export default function CreateNoteDialog({
             </DialogOverlay>
             
             <motion.div
-              className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-md sm:max-w-[min(680px,95vw)] mx-auto"
+              className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-md mx-auto"
               initial={{ 
                 opacity: 0, 
-                y: 0,
+                y: '100%',
                 scale: 0.95
               }}
               animate={{ 
@@ -188,11 +200,8 @@ export default function CreateNoteDialog({
               }}
               exit={{ 
                 opacity: 0, 
-                scale: 0.95,
-                transition: {
-                  duration: 0.2,
-                  ease: "easeOut"
-                }
+                y: '100%',
+                scale: 0.95
               }}
               transition={{ 
                 type: "spring",
@@ -207,279 +216,178 @@ export default function CreateNoteDialog({
                 创建笔记 - {activeTab === "link" ? "链接笔记" : "文本笔记"}
               </DialogTitle>
               
-              <div 
-                className="bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-t-3xl shadow-2xl ring-1 ring-gray-200/50 ring-inset relative overflow-hidden max-h-[90vh] flex flex-col"
-                style={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: '0 -25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                }}
-              >
-                {/* 光泽效果 */}
-                <div className="absolute inset-0 rounded-t-3xl bg-gradient-to-t from-transparent via-white/10 to-white/30 pointer-events-none" />
-                
-                <div className="relative p-4 sm:p-6 overflow-y-auto flex-1">
+              <div className="bg-sand-1 rounded-t-xl shadow-border flex-1 max-h-[90vh] overflow-hidden flex flex-col mb-0">
+                <div className="flex flex-col gap-2 max-h-full overflow-hidden flex-1 justify-between">
+                  <div className="flex flex-col flex-1 overflow-hidden shadow-border rounded-xl">
           
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <div className="relative mb-4 sm:mb-6">
-              <TabsList className="grid w-full grid-cols-2 h-12 sm:h-14 p-2 bg-gray-100/80 rounded-2xl shadow-inner border border-gray-200/50 backdrop-blur-sm">
-                <TabsTrigger 
-                  value="link" 
-                  className="flex items-center gap-2 sm:gap-3 h-8 sm:h-10 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 hover:scale-[0.98] active:scale-95 data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-200/30 data-[state=active]:text-blue-700 data-[state=active]:border data-[state=active]:border-blue-200/50"
-                >
-                  <div className="p-1 sm:p-1.5 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 data-[state=active]:from-blue-100 data-[state=active]:to-blue-200">
-                    <Link className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                  </div>
-                  链接笔记
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="text" 
-                  className="flex items-center gap-2 sm:gap-3 h-8 sm:h-10 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 hover:scale-[0.98] active:scale-95 data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-green-200/30 data-[state=active]:text-green-700 data-[state=active]:border data-[state=active]:border-green-200/50"
-                >
-                  <div className="p-1 sm:p-1.5 rounded-lg bg-gradient-to-br from-green-50 to-green-100 data-[state=active]:from-green-100 data-[state=active]:to-green-200">
-                    <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
-                  </div>
-                  文本笔记
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <form onSubmit={handleSubmit} className={cn(
-              "space-y-4 sm:space-y-6 overflow-hidden",
-              isTransitioning && activeTab === "text" && "form-to-text",
-              isTransitioning && activeTab === "link" && "form-to-link"
-            )}>
-              {/* 主内容区域 - 根据标签动态切换 */}
-              <div className={cn(
-                "space-y-3",
-                isTransitioning && "content-blur-out",
-                !isTransitioning && "content-clear-in"
-              )}>
-                {activeTab === "link" ? (
-                  <>
-                    <Label htmlFor="url" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      链接地址
-                    </Label>
-                    <div className="relative group">
-                      <div className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-10">
-                        <div className="p-1 sm:p-1.5 rounded-lg bg-blue-50 group-focus-within:bg-blue-100 transition-colors">
-                          <Globe className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                        </div>
-                      </div>
-                      <Input
-                        id="url"
-                        type="url"
-                        placeholder="https://example.com"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        className="pl-12 sm:pl-14 pr-10 sm:pr-12 h-10 sm:h-12 text-xs sm:text-sm md:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-blue-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-200 w-full focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
-                        style={{ 
-                          textOverflow: 'ellipsis',
-                          fontSize: 'clamp(12px, 2.5vw, 15px)',
-                          minWidth: 0
-                        }}
-                        required
-                      />
-                      {isExtractingMetadata && (
-                        <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2">
-                          <div className="p-1 sm:p-1.5 rounded-lg bg-gray-50">
-                            <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin text-gray-600" />
-                          </div>
-                        </div>
-                      )}
+                    {/* 标签页选择器 */}
+                    <div className="w-full min-h-[60px] flex items-center justify-center border-dashed border-2 border-sand-6 bg-sand-2">
+                      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                        <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-sand-3 rounded-lg">
+                          <TabsTrigger 
+                            value="link" 
+                            className="flex items-center gap-2 h-10 rounded-md font-medium text-sm transition-all duration-200 data-[state=active]:bg-sand-1 data-[state=active]:text-sand-12 data-[state=active]:shadow-sm"
+                          >
+                            <Link className="h-4 w-4" />
+                            链接笔记
+                          </TabsTrigger>
+                          <TabsTrigger 
+                            value="text" 
+                            className="flex items-center gap-2 h-10 rounded-md font-medium text-sm transition-all duration-200 data-[state=active]:bg-sand-1 data-[state=active]:text-sand-12 data-[state=active]:shadow-sm"
+                          >
+                            <FileText className="h-4 w-4" />
+                            文本笔记
+                          </TabsTrigger>
+                        </TabsList>
+                      </Tabs>
                     </div>
                     
-                    {metadata && (
-                      <div className="rounded-2xl border-2 border-dashed border-blue-200 bg-gradient-to-br from-blue-50/50 to-white/80 backdrop-blur-sm overflow-hidden shadow-inner">
-                        <div className="p-4 sm:p-6">
-                          <div className="flex gap-3 sm:gap-4 min-w-0 overflow-hidden">
-                            {metadata.image && (
-                              <div className="flex-shrink-0">
-                                <div className="relative">
-                                  <img
-                                    src={getProxiedImageUrl(metadata.image) || metadata.image}
-                                    alt="预览"
-                                    className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl shadow-sm ring-1 ring-black/5"
-                                  />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl"></div>
-                                </div>
+                    {/* Divider */}
+                    <div className="dash-sand-a6 bg-dash-6 h-[0.5px] bg-repeat-x"></div>
+
+                    {/* 主内容输入区域 */}
+                    <form id="create-note-form" onSubmit={handleSubmit}>
+                      {activeTab === "link" ? (
+                        <>
+                          {/* URL 输入区域 */}
+                          <div className="bg-sand-2 px-3 py-2">
+                            <input
+                              type="url"
+                              value={url}
+                              onChange={(e) => setUrl(e.target.value)}
+                              placeholder="Paste a link"
+                              className="w-full text-[15px] bg-transparent text-sand-12 placeholder-sand-9 focus:outline-none"
+                              required
+                            />
+                            {isExtractingMetadata && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <Loader2 className="h-4 w-4 animate-spin text-sand-9" />
                               </div>
                             )}
-                            <div className="flex-1 min-w-0 overflow-hidden">
-                              <div className="flex items-center gap-2 mb-2 min-w-0 max-w-full">
-                                {metadata.favicon && (
-                                  <div className="p-1 rounded-md bg-white shadow-sm flex-shrink-0">
-                                    <img src={getProxiedImageUrl(metadata.favicon) || metadata.favicon} alt="" className="w-4 h-4" />
-                                  </div>
-                                )}
-                                <span className="text-sm font-medium text-blue-600 truncate flex-1 min-w-0 max-w-[200px]">{metadata.domain}</span>
-                              </div>
-                              <h4 className="font-semibold text-gray-800 mb-1 text-sm sm:text-base leading-tight" 
-                                  style={{ 
-                                    display: '-webkit-box', 
-                                    WebkitLineClamp: 2, 
-                                    WebkitBoxOrient: 'vertical', 
-                                    overflow: 'hidden',
-                                    wordBreak: 'break-word',
-                                    overflowWrap: 'break-word'
-                                  }}>
-                                {metadata.title}
-                              </h4>
-                              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed" 
-                                 style={{ 
-                                   display: '-webkit-box', 
-                                   WebkitLineClamp: 3, 
-                                   WebkitBoxOrient: 'vertical', 
-                                   overflow: 'hidden',
-                                   wordBreak: 'break-word',
-                                   overflowWrap: 'break-word'
-                                 }}>
-                                {metadata.description}
-                              </p>
-                            </div>
                           </div>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <Label htmlFor="content" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      笔记内容
-                    </Label>
-                    <div className="relative group">
-                      <Textarea
-                        id="content"
-                        placeholder="开始写下你的想法... 支持 Markdown 格式、数学公式 ($\\LaTeX$) 和代码高亮"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        className="min-h-[120px] sm:min-h-[140px] p-3 sm:p-4 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-green-300 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-200 resize-none leading-relaxed focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
-                        required
-                      />
-                      <div className="absolute top-3 right-3 opacity-20 group-focus-within:opacity-40 transition-opacity">
-                        <FileText className="h-5 w-5 text-green-600" />
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* 通用字段 */}
-              <div className="space-y-4 pt-3 border-t border-gray-200">
-                <div className="space-y-3">
-                  <Label htmlFor="title" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    标题（可选）
-                  </Label>
-                  <Input
-                    id="title"
-                    placeholder={activeTab === "link" ? "自定义标题，留空使用网页标题" : "为你的笔记添加标题"}
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="h-10 sm:h-12 px-3 sm:px-4 text-xs sm:text-sm md:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-purple-300 focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0 w-full"
-                    style={{ 
-                      textOverflow: 'ellipsis',
-                      fontSize: 'clamp(12px, 2.5vw, 15px)',
-                      minWidth: 0
-                    }}
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="description" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    描述（可选）
-                  </Label>
-                  <Textarea
-                    id="description"
-                    placeholder={activeTab === "link" ? "自定义描述，留空使用网页描述" : "添加一些描述信息"}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="min-h-[70px] sm:min-h-[80px] p-3 sm:p-4 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-orange-300 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all duration-200 resize-none leading-relaxed focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="tags" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
-                    <Tag className="h-4 w-4 text-pink-600" />
-                    标签（可选）
-                  </Label>
-                  <Input
-                    id="tags"
-                    placeholder="用空格分隔多个标签，如：工作 学习 想法"
-                    value={tags}
-                    onChange={(e) => setTags(e.target.value)}
-                    className="h-10 sm:h-12 px-3 sm:px-4 text-xs sm:text-sm md:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-pink-300 focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0 w-full"
-                    style={{ 
-                      textOverflow: 'ellipsis',
-                      fontSize: 'clamp(12px, 2.5vw, 15px)',
-                      minWidth: 0
-                    }}
-                  />
-                  {tags && (
-                    <div className="flex flex-wrap gap-2 mt-3 max-w-full overflow-hidden">
-                      {tags.split(/\s+/).filter(tag => tag.trim()).slice(0, 10).map((tag, index) => (
-                        <div key={index} className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 text-xs sm:text-sm font-medium shadow-sm ring-1 ring-pink-200/50 max-w-[120px] sm:max-w-[160px]">
-                          <span className="truncate">{tag.trim()}</span>
-                        </div>
-                      ))}
-                      {tags.split(/\s+/).filter(tag => tag.trim()).length > 10 && (
-                        <div className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-gray-100 text-gray-500 text-xs sm:text-sm font-medium">
-                          +{tags.split(/\s+/).filter(tag => tag.trim()).length - 10}
-                        </div>
+                          
+                          {/* Divider */}
+                          <div className="dash-sand-a6 bg-dash-6 h-[0.5px] bg-repeat-x"></div>
+                          
+                          {/* 元数据预览 */}
+                          {metadata && (
+                            <>
+                              <div className="bg-sand-2 px-3 py-3">
+                                <div className="flex gap-3 items-start">
+                                  {metadata.image && (
+                                    <img
+                                      src={getProxiedImageUrl(metadata.image) || metadata.image}
+                                      alt="预览"
+                                      className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      {metadata.favicon && (
+                                        <img src={getProxiedImageUrl(metadata.favicon) || metadata.favicon} alt="" className="w-4 h-4" />
+                                      )}
+                                      <span className="text-sm text-sand-11 truncate">{metadata.domain}</span>
+                                    </div>
+                                    <h4 className="font-medium text-sand-12 text-sm mb-1 line-clamp-2">
+                                      {metadata.title}
+                                    </h4>
+                                    <p className="text-xs text-sand-11 line-clamp-2">
+                                      {metadata.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Divider */}
+                              <div className="dash-sand-a6 bg-dash-6 h-[0.5px] bg-repeat-x"></div>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {/* 文本内容输入区域 */}
+                          <div className="bg-sand-2 px-3 py-2">
+                            <textarea
+                              value={content}
+                              onChange={(e) => setContent(e.target.value)}
+                              placeholder="Write your note here..."
+                              className="w-full min-h-[120px] text-[15px] bg-transparent text-sand-12 placeholder-sand-9 focus:outline-none resize-none"
+                              required
+                            />
+                          </div>
+                          
+                          {/* Divider */}
+                          <div className="dash-sand-a6 bg-dash-6 h-[0.5px] bg-repeat-x"></div>
+                        </>
                       )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-row justify-end gap-3 sm:gap-4 pt-4 border-t border-gray-200 pb-2 sm:pb-0">
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleClose}
-                    disabled={isLoading}
-                    className="flex-1 sm:w-auto px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl border-2 border-gray-300 bg-white/80 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-sm sm:text-base order-1"
-                  >
-                    取消
-                  </Button>
-                </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >
-                  <Button
-                    type="submit"
-                    disabled={isLoading || (activeTab === "link" && !url) || (activeTab === "text" && !content)}
-                    className="flex-1 sm:w-auto min-w-[120px] px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-200/50 border-0 transition-all duration-200 font-semibold text-sm sm:text-base order-2"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        创建中...
-                      </>
-                    ) : (
-                      <>
-                        <div className="mr-2 p-1 rounded-md bg-white/20">
-                          <FileText className="h-4 w-4" />
+                      
+                      {/* Note input */}
+                      <div className="bg-mi-amber-2 text-sand-11 px-3 py-2">
+                        <div className="font-snpro" style={{ minHeight: '70px' }}>
+                          <div 
+                            contentEditable
+                            className="prose text-[15px] max-w-full prose-zinc text-sand-12 focus:outline-none prose-li:marker:text-sand-11 subpixel-antialiased"
+                            style={{ minHeight: '70px' }}
+                            onInput={(e) => {
+                              const target = e.target as HTMLDivElement
+                              setDescription(target.textContent || '')
+                            }}
+                            suppressContentEditableWarning={true}
+                            data-placeholder="Add description (optional)"
+                          />
                         </div>
-                        创建笔记
-                      </>
-                    )}
-                  </Button>
-                </motion.div>
-              </div>
-            </form>
-          </Tabs>
+                      </div>
+                      
+                      {/* 细细的分隔线 */}
+                      <div className="h-[1px] bg-gray-200"></div>
+                      
+                      {/* 标签输入区域 */}
+                      <div className="bg-blue-50 px-3 py-2 rounded-b-xl" style={{ height: '35px' }}>
+                        <input
+                          type="text"
+                          value={tags}
+                          onChange={(e) => setTags(e.target.value)}
+                          placeholder="Add tags (separated by spaces)"
+                          className="w-full text-[13px] bg-transparent text-gray-600 placeholder-gray-400 focus:outline-none"
+                          autoFocus={false}
+                          tabIndex={-1}
+                        />
+                      </div>
+                    </form>
+                  </div>
+                  
+                  {/* Action buttons */}
+                  <div className="flex gap-2 justify-end items-center w-full px-2 mt-2 pb-2">
+                    <motion.button 
+                      whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                      whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                      type="button"
+                      onClick={handleClose}
+                      disabled={isLoading}
+                      className="px-4 py-2 text-sm font-medium text-sand-11 hover:text-sand-12 hover:bg-sand-a3 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </motion.button>
+                    <motion.button 
+                      whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                      whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                      type="submit"
+                      form="create-note-form"
+                      disabled={isLoading || (activeTab === "link" && !url) || (activeTab === "text" && !content)}
+                      className="px-4 py-2 text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition flex items-center gap-2"
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        'Done'
+                      )}
+                    </motion.button>
+                  </div>
                 </div>
               </div>
             </motion.div>

@@ -275,11 +275,11 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
                         onClick={handleSubmit}
                         disabled={!selectedFile || isLoading}
-                        className="px-4 py-2 text-sm font-medium bg-sand-9 text-sand-1 hover:bg-sand-10 disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition flex items-center gap-2"
+                        className="px-4 py-2 text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition flex items-center gap-2"
                       >
                         {isLoading ? (
                           <>
-                            <div className="w-4 h-4 border-2 border-sand-1/30 border-t-sand-1 rounded-full animate-spin" />
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             Creating...
                           </>
                         ) : (

@@ -26,11 +26,38 @@ export default function PhotoEditDialog({
   const [content, setContent] = useState(photoNote.note || "")
   const [tags, setTags] = useState(note.tags || "")
 
-  // 当对话框打开时重置表单
+  // 当对话框打开时重置表单并设置光标位置
   useEffect(() => {
     if (open) {
       setContent(photoNote.note || "")
       setTags(note.tags || "")
+      
+      // 延迟设置光标到内容末尾
+      setTimeout(() => {
+        const editableDiv = document.querySelector('[contenteditable="true"]') as HTMLDivElement
+        if (editableDiv) {
+          // 设置文本内容
+          editableDiv.textContent = photoNote.note || ""
+          
+          // 将光标移动到末尾
+          const range = document.createRange()
+          const selection = window.getSelection()
+          
+          if (editableDiv.childNodes.length > 0) {
+            const lastNode = editableDiv.childNodes[editableDiv.childNodes.length - 1]
+            range.setStartAfter(lastNode)
+            range.setEndAfter(lastNode)
+          } else {
+            range.setStart(editableDiv, 0)
+            range.setEnd(editableDiv, 0)
+          }
+          
+          range.collapse(false) // collapse to end
+          selection?.removeAllRanges()
+          selection?.addRange(range)
+          editableDiv.focus()
+        }
+      }, 100)
     }
   }, [open, photoNote.note, note.tags])
 
@@ -152,7 +179,6 @@ export default function PhotoEditDialog({
                               setContent(target.textContent || '')
                             }}
                             suppressContentEditableWarning={true}
-                            dangerouslySetInnerHTML={{ __html: content }}
                             data-placeholder="Edit note for this image"
                           />
                         </div>
@@ -193,7 +219,7 @@ export default function PhotoEditDialog({
                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
                         onClick={handleSubmit}
                         disabled={isLoading}
-                        className="px-4 py-2 text-sm font-medium bg-sand-9 text-sand-1 hover:bg-sand-10 disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition"
+                        className="px-4 py-2 text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition"
                       >
                         {isLoading ? 'Updating...' : 'Done'}
                       </motion.button>
