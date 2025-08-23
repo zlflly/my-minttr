@@ -786,7 +786,7 @@ code:not(.hljs) {
 
 /* ContentEditable placeholder styling */
 [contenteditable] p.is-editor-empty:first-child:before {
-  color: var(--sand-9);
+  color: #9ca3af;
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -795,7 +795,7 @@ code:not(.hljs) {
 
 [contenteditable]:empty:before {
   content: attr(data-placeholder);
-  color: var(--sand-9);
+  color: #9ca3af;
   pointer-events: none;
   display: block;
 }

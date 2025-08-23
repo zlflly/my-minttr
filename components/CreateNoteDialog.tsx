@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogOverlay, DialogPortal, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, Link, FileText, Globe, Image, Tag, X } from "lucide-react"
@@ -220,26 +220,21 @@ export default function CreateNoteDialog({
                 <div className="flex flex-col gap-2 max-h-full overflow-hidden flex-1 justify-between">
                   <div className="flex flex-col flex-1 overflow-hidden shadow-border rounded-xl">
           
-                    {/* 标签页选择器 */}
+                    {/* 标题显示区域 */}
                     <div className="w-full min-h-[60px] flex items-center justify-center border-dashed border-2 border-sand-6 bg-sand-2">
-                      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-sand-3 rounded-lg">
-                          <TabsTrigger 
-                            value="link" 
-                            className="flex items-center gap-2 h-10 rounded-md font-medium text-sm transition-all duration-200 data-[state=active]:bg-sand-1 data-[state=active]:text-sand-12 data-[state=active]:shadow-sm"
-                          >
-                            <Link className="h-4 w-4" />
-                            链接笔记
-                          </TabsTrigger>
-                          <TabsTrigger 
-                            value="text" 
-                            className="flex items-center gap-2 h-10 rounded-md font-medium text-sm transition-all duration-200 data-[state=active]:bg-sand-1 data-[state=active]:text-sand-12 data-[state=active]:shadow-sm"
-                          >
-                            <FileText className="h-4 w-4" />
-                            文本笔记
-                          </TabsTrigger>
-                        </TabsList>
-                      </Tabs>
+                      <div className="flex items-center gap-2 text-sand-12 font-medium">
+                        {activeTab === "link" ? (
+                          <>
+                            <Link className="h-5 w-5" />
+                            <span>创建链接笔记</span>
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="h-5 w-5" />
+                            <span>创建文本笔记</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                     
                     {/* Divider */}
