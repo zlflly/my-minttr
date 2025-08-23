@@ -17,10 +17,10 @@ export default function NoteContextMenu({ children, note, onHide, onDelete, onCo
   const [showColorMenu, setShowColorMenu] = useState(false)
   
   const colors = [
-    { id: "default" as const, name: "Default", class: "bg-gray-100" },
-    { id: "pink" as const, name: "Pink", class: "bg-pink-100" },
-    { id: "blue" as const, name: "Blue", class: "bg-blue-100" },
-    { id: "green" as const, name: "Green", class: "bg-green-100" },
+    { id: "default" as const, name: "Default", style: { backgroundColor: "rgb(243 244 246)" } },
+    { id: "pink" as const, name: "Pink", style: { backgroundColor: "rgb(253 218 230)" } },
+    { id: "blue" as const, name: "Blue", style: { backgroundColor: "rgb(201 230 253)" } },
+    { id: "green" as const, name: "Green", style: { backgroundColor: "rgb(210 244 215)" } },
   ]
   return (
     <ContextMenu.Root>
@@ -110,7 +110,7 @@ export default function NoteContextMenu({ children, note, onHide, onDelete, onCo
                     )}
                     onClick={() => onColorChange(color.id)}
                   >
-                    <div className={cn("w-4 h-4 rounded-full border border-gray-200", color.class)} />
+                    <div style={color.style} className="w-4 h-4 rounded-full border border-gray-200" />
                     <span>{color.name}</span>
                     {note.color === color.id && (
                       <svg 

@@ -32,16 +32,28 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
   }, [note.color, note.isHidden])
   
   // 获取卡片颜色样式
-  const getCardColorClass = (color?: string) => {
+  const getCardColorStyle = (color?: string) => {
     switch (color) {
       case 'pink':
-        return 'bg-pink-50 border-pink-100'
+        return { 
+          backgroundColor: 'rgb(253 218 230)', 
+          borderColor: 'rgb(251 207 232)' 
+        }
       case 'blue':
-        return 'bg-blue-50 border-blue-100'
+        return { 
+          backgroundColor: 'rgb(201 230 253)', 
+          borderColor: 'rgb(147 197 253)' 
+        }
       case 'green':
-        return 'bg-green-50 border-green-100'
+        return { 
+          backgroundColor: 'rgb(210 244 215)', 
+          borderColor: 'rgb(187 247 208)' 
+        }
       default:
-        return 'bg-white border-black/5'
+        return { 
+          backgroundColor: 'rgb(243 244 246)', 
+          borderColor: 'rgba(0, 0, 0, 0.05)' 
+        }
     }
   }
   
@@ -116,7 +128,10 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
   if (note.type === "LINK") {
     return (
       <NoteContextMenu note={{...note, color: localColor, isHidden: localIsHidden}} onHide={handleHide} onDelete={handleDelete} onColorChange={handleColorChange}>
-        <div className={`relative ${getCardColorClass(localColor)} rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden mb-4 group cursor-pointer ${localIsHidden ? 'blur-sm opacity-70' : ''}`}>
+        <div 
+          className={`relative rounded-xl border shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden mb-4 group cursor-pointer ${localIsHidden ? 'blur-sm opacity-70' : ''}`}
+          style={getCardColorStyle(localColor)}
+        >
           {note.imageUrl && (
             <div className="aspect-video w-full overflow-hidden">
               <img 
@@ -287,7 +302,10 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
 
   return (
     <NoteContextMenu note={{...note, color: localColor, isHidden: localIsHidden}} onHide={handleHide} onDelete={handleDelete} onColorChange={handleColorChange}>
-      <div className={`relative ${getCardColorClass(localColor)} rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-4 mb-4 cursor-pointer ${localIsHidden ? 'blur-sm opacity-70' : ''}`}>
+      <div 
+        className={`relative rounded-xl border shadow-sm hover:shadow-md transition-shadow duration-200 p-4 mb-4 cursor-pointer ${localIsHidden ? 'blur-sm opacity-70' : ''}`}
+        style={getCardColorStyle(localColor)}
+      >
         {note.title && (
           <h3 className="font-semibold text-[#1C1917] text-lg mb-3">
             {note.title}
