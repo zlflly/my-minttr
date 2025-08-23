@@ -160,7 +160,7 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
     const photoNote: PhotoNote = {
       id: note.id,
       imageUrl: note.imageUrl || '',
-      imageAlt: note.title,
+      imageAlt: note.title || undefined,
       note: note.content || '',
       createdAt: new Date(note.createdAt),
       updatedAt: new Date(note.updatedAt)
@@ -196,7 +196,7 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
             <div className="aspect-video w-full overflow-hidden">
               <LazyImage 
                 src={note.imageUrl} 
-                alt={note.title} 
+                alt={note.title || ''} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
               />
             </div>

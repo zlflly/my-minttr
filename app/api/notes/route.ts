@@ -19,17 +19,21 @@ import type { NoteType } from '@/lib/types';
 // 查询验证模式
 const notesQuerySchema = paginationSchema.extend({
   type: noteTypeSchema.optional(),
-}).transform(data => ({
-  page: Number(data.page) || 1,
-  limit: Math.min(Number(data.limit) || 20, 100), // 限制最大100条
-  type: data.type as NoteType | undefined,
-}));
+}).transform((data) => {
+  const page = Number(data.page) || 1;
+  const limit = Math.min(Number(data.limit) || 20, 100);
+  const type = data.type as NoteType | undefined;
+  return { page, limit, type };
+});
 
 // 获取笔记列表
 export const GET = withQueryValidation(
   notesQuerySchema,
   async (request: NextRequest, validatedQuery) => {
-    const { page, limit, type } = validatedQuery;
+    const { page = 1, limit = 20, type } = validatedQuery;
+    // 确保page和limit是数字
+    const safePage = Number(page) || 1;
+    const safeLimit = Number(limit) || 20;
     
     // 为演示目的，现在使用一个默认用户ID
     const defaultUserId = 'demo-user';
@@ -45,8 +49,8 @@ export const GET = withQueryValidation(
         prisma.note.findMany({
           where,
           orderBy: { createdAt: 'desc' },
-          skip: (page - 1) * limit,
-          take: limit,
+          skip: (safePage - 1) * safeLimit,
+          take: safeLimit,
           // 只选择必要的字段，提高性能
           select: {
             id: true,
@@ -76,10 +80,10 @@ export const GET = withQueryValidation(
           notes,
           undefined,
           {
-            page,
-            limit,
+            page: safePage,
+            limit: safeLimit,
             total,
-            totalPages: Math.ceil(total / limit),
+            totalPages: Math.ceil(total / safeLimit),
           }
         ),
         { headers: securityHeaders() }

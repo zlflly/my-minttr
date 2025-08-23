@@ -187,7 +187,7 @@ function extractBilibiliCover(html: string, baseUrl: string): string | null {
   }
   
   // 备选方案：从window.__INITIAL_STATE__中提取
-  const initialStateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*({.+?});?\s*\(function/s)
+  const initialStateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*({[\s\S]+?});?\s*\(function/)
   if (initialStateMatch) {
     try {
       const stateData = JSON.parse(initialStateMatch[1])

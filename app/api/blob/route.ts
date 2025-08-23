@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     if (contentType.includes('application/json')) {
       const { path, data, access: inputAccess }: { path?: string; data: string; access?: 'public' | 'private' } = await request.json()
       let pathname = path || `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}`
-      let access: 'public' | 'private' = inputAccess || 'public'
+      const access: 'public' = 'public' // 强制使用public访问
       
       const result = await put(pathname, data, { access, token })
       return Response.json({ 

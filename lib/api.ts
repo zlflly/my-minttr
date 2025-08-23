@@ -6,7 +6,8 @@ import type {
   CreateNoteData, 
   UpdateNoteData, 
   LinkMetadata,
-  OperationResult 
+  OperationResult,
+  APIError as APIErrorInterface
 } from './types';
 import { 
   createNoteSchema, 
@@ -100,7 +101,7 @@ export async function fetchNotes(page = 1, limit = 20): Promise<APIResponse<Note
       error: {
         code: 'FETCH_NOTES_ERROR',
         message: error instanceof Error ? error.message : '获取笔记列表失败'
-      }
+      } as APIErrorInterface
     };
   }
 }
@@ -149,7 +150,7 @@ export async function createNote(noteData: {
       error: {
         code: 'CREATE_NOTE_ERROR',
         message: error instanceof Error ? error.message : '创建笔记失败'
-      }
+      } as APIErrorInterface
     };
   }
 }
@@ -188,7 +189,7 @@ export async function updateNote(id: string, noteData: Partial<Note>): Promise<A
       error: {
         code: 'UPDATE_NOTE_ERROR',
         message: error instanceof Error ? error.message : '更新笔记失败'
-      }
+      } as APIErrorInterface
     };
   }
 }
@@ -223,7 +224,7 @@ export async function deleteNote(id: string): Promise<APIResponse<{ message: str
       error: {
         code: 'DELETE_NOTE_ERROR',
         message: error instanceof Error ? error.message : '删除笔记失败'
-      }
+      } as APIErrorInterface
     };
   }
 }
@@ -288,7 +289,7 @@ export async function extractMetadata(url: string): Promise<APIResponse<{
       error: {
         code: 'EXTRACT_METADATA_ERROR',
         message: error instanceof Error ? error.message : '提取元数据失败'
-      }
+      } as APIErrorInterface
     };
   }
 }

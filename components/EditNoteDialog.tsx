@@ -287,7 +287,7 @@ export default function EditNoteDialog({
                             <div className="flex gap-3 items-start">
                             {(metadata?.image || note.imageUrl) && (
                                   <img
-                                    src={getProxiedImageUrl(metadata?.image || note.imageUrl || '') || metadata?.image || note.imageUrl}
+                                    src={getProxiedImageUrl(metadata?.image || note.imageUrl || '') || metadata?.image || note.imageUrl || ''}
                                     alt="预览"
                                   className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                                   />
@@ -295,7 +295,7 @@ export default function EditNoteDialog({
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
                                 {(metadata?.favicon || note.faviconUrl) && (
-                                    <img src={getProxiedImageUrl(metadata?.favicon || note.faviconUrl || '') || metadata?.favicon || note.faviconUrl} alt="" className="w-4 h-4" />
+                                    <img src={getProxiedImageUrl(metadata?.favicon || note.faviconUrl || '') || metadata?.favicon || note.faviconUrl || ''} alt="" className="w-4 h-4" />
                                 )}
                                   <span className="text-sm text-sand-11 truncate">{metadata?.domain || note.domain}</span>
                               </div>
