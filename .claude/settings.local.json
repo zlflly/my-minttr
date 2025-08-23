@@ -10,7 +10,8 @@
       "Bash(npx shadcn@latest add:*)",
       "Bash(npm run build:*)",
       "Bash(del .env)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []
