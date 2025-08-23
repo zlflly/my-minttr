@@ -15,7 +15,11 @@
       "Bash(npx tsc:*)",
       "Bash(npm run lint)",
       "Bash(grep:*)",
-      "Read(/D:\\User\\Desktop\\项目\\my_minttr/**)"
+      "Read(/D:\\User\\Desktop\\项目\\my_minttr/**)",
+      "Bash(pnpm install:*)",
+      "Bash(del pnpm-lock.yaml)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
