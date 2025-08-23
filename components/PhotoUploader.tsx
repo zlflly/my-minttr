@@ -72,6 +72,11 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
     }
   }, [open, handlePaste]);
 
+  // 平滑关闭动画处理
+  const handleClose = useCallback(() => {
+    onOpenChange(false)
+  }, [onOpenChange])
+
   const handleSubmit = useCallback(() => {
     if (selectedFile) {
       onSubmit({
@@ -81,9 +86,10 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
       // Reset form
       setSelectedFile(null);
       setNote('');
-      onOpenChange(false);
+      // 使用平滑关闭动画
+      handleClose();
     }
-  }, [selectedFile, note, onSubmit, onOpenChange]);
+  }, [selectedFile, note, onSubmit, handleClose]);
 
   const resetForm = useCallback(() => {
     setSelectedFile(null);
@@ -108,7 +114,10 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ 
+                  duration: 0.6,
+                  ease: [0.4, 0, 0.2, 1]
+                }}
               />
             </Dialog.Overlay>
             
@@ -117,19 +126,25 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                 className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-md mx-auto"
                 initial={{ 
                   opacity: 0, 
-                  y: '100%'
+                  y: '100%',
+                  scale: 0.95
                 }}
                 animate={{ 
                   opacity: 1, 
-                  y: 0
+                  y: 0,
+                  scale: 1
                 }}
                 exit={{ 
                   opacity: 0, 
-                  y: '100%'
+                  y: '100%',
+                  scale: 0.95
                 }}
                 transition={{ 
-                  duration: 0.3,
-                  ease: [0.32, 0.72, 0, 1]
+                  type: "spring",
+                  damping: 25,
+                  stiffness: 200,
+                  mass: 1,
+                  duration: 0.6
                 }}
               >
                 {/* DialogTitle for accessibility - hidden visually but available to screen readers */}
@@ -222,19 +237,25 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                     
                     {/* Action buttons */}
                     <div className="flex gap-2 justify-end items-center w-full px-2 mt-2 pb-2">
-                      <button 
-                        onClick={() => handleOpenChange(false)}
+                      <motion.button 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        onClick={handleClose}
                         className="px-4 py-2 text-sm font-medium text-sand-11 hover:text-sand-12 hover:bg-sand-a3 rounded-full transition"
                       >
                         Cancel
-                      </button>
-                      <button 
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
                         onClick={handleSubmit}
                         disabled={!selectedFile}
                         className="px-4 py-2 text-sm font-medium bg-sand-9 text-sand-1 hover:bg-sand-10 disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition"
                       >
                         Done
-                      </button>
+                      </motion.button>
                     </div>
                   </div>
                 </div>

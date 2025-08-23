@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogOverlay, DialogPortal, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -15,6 +14,7 @@ import { createNote, extractMetadata, isValidUrl } from "@/lib/api"
 import type { Note } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { getProxiedImageUrl } from "@/lib/image-proxy"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface CreateNoteDialogProps {
   onNoteCreated: (note: Note) => void
@@ -34,7 +34,6 @@ export default function CreateNoteDialog({
   const [internalOpen, setInternalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"link" | "text">(initialTab)
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const ref = React.useRef<HTMLDivElement>(null)
   
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const setOpen = controlledOnOpenChange || setInternalOpen
@@ -109,6 +108,11 @@ export default function CreateNoteDialog({
     }
   }, [url, activeTab, title, description])
 
+  // 平滑关闭动画处理
+  const handleClose = () => {
+    setOpen(false)
+  }
+
   // 提交表单
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -131,7 +135,8 @@ export default function CreateNoteDialog({
       
       if (response.success && response.data) {
         onNoteCreated(response.data)
-        setOpen(false)
+        // 使用平滑关闭动画
+        handleClose()
         resetForm()
       } else {
         console.error("创建笔记失败:", response.error)
@@ -148,44 +153,64 @@ export default function CreateNoteDialog({
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogPortal>
-        <DialogOverlay className="bg-black/80 backdrop-blur-md fixed inset-0 z-[55] !opacity-0 !transition-all !duration-400 !ease-out data-[state=open]:!opacity-100 data-[state=closed]:!opacity-0" />
-        <DialogPrimitive.Content
-          ref={ref}
-          className={cn(
-            // 强制覆盖默认的中央定位，确保始终在底部
-            "!fixed !left-[50%] !bottom-0 !top-auto !z-[60] !grid !w-full sm:!max-w-[min(680px,95vw)] !translate-x-[-50%] !gap-4 !border-0 !p-4 sm:!p-6 !max-h-[90vh] sm:!max-h-[85vh] !overflow-y-auto",
-            // 初始状态：完全隐藏在底部外，添加缩放效果
-            "!translate-y-full !scale-95 !opacity-0",
-            // 动画状态 - 弹出动画和高度变化动画分别控制
-            "data-[state=open]:!transition-all data-[state=open]:!duration-500 data-[state=open]:!ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-            "data-[state=closed]:!transition-all data-[state=closed]:!duration-300 data-[state=closed]:!ease-in",
-            // 内容高度变化的平滑动画 - 使用更长的时间和更平滑的缓动
-            "!transition-[height,max-height,transform] !duration-700 !ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
-            // 打开时：弹出到正确位置，恢复大小，完全显示
-            "data-[state=open]:!translate-y-0 data-[state=open]:!scale-100 data-[state=open]:!opacity-100",
-            // 关闭时：滑回底部外，缩小，淡出
-            "data-[state=closed]:!translate-y-full data-[state=closed]:!scale-95 data-[state=closed]:!opacity-0",
-            // 拟物风格：圆角、阴影、渐变背景
-            "rounded-t-3xl shadow-2xl",
-            // 纸质质感背景
-            "bg-gradient-to-br from-white via-gray-50 to-gray-100",
-            // 边框效果
-            "ring-1 ring-gray-200/50 ring-inset",
-            // 光泽效果
-            "before:absolute before:inset-0 before:rounded-t-3xl before:bg-gradient-to-t before:from-transparent before:via-white/10 before:to-white/30 before:pointer-events-none",
-            "relative"
-          )}
-          style={{ 
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: '0 -25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-          }}
-        >
-          {/* DialogTitle for accessibility - hidden visually but available to screen readers */}
-          <DialogTitle className="sr-only">
-            创建笔记 - {activeTab === "link" ? "链接笔记" : "文本笔记"}
-          </DialogTitle>
+      <AnimatePresence>
+        {open && (
+          <DialogPortal>
+            <DialogOverlay asChild>
+              <motion.div 
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ 
+                  duration: 0.6,
+                  ease: [0.4, 0, 0.2, 1]
+                }}
+              />
+            </DialogOverlay>
+            
+            <motion.div
+              className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-md sm:max-w-[min(680px,95vw)] mx-auto"
+              initial={{ 
+                opacity: 0, 
+                y: '100%',
+                scale: 0.95
+              }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                scale: 1
+              }}
+              exit={{ 
+                opacity: 0, 
+                y: '100%',
+                scale: 0.95
+              }}
+              transition={{ 
+                type: "spring",
+                damping: 25,
+                stiffness: 200,
+                mass: 1,
+                duration: 0.6
+              }}
+            >
+              {/* DialogTitle for accessibility - hidden visually but available to screen readers */}
+              <DialogTitle className="sr-only">
+                创建笔记 - {activeTab === "link" ? "链接笔记" : "文本笔记"}
+              </DialogTitle>
+              
+              <div 
+                className="bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-t-3xl shadow-2xl ring-1 ring-gray-200/50 ring-inset relative overflow-hidden max-h-[90vh] flex flex-col"
+                style={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: '0 -25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                }}
+              >
+                {/* 光泽效果 */}
+                <div className="absolute inset-0 rounded-t-3xl bg-gradient-to-t from-transparent via-white/10 to-white/30 pointer-events-none" />
+                
+                <div className="relative p-4 sm:p-6 overflow-y-auto flex-1">
           
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <div className="relative mb-4 sm:mb-6">
@@ -404,39 +429,55 @@ export default function CreateNoteDialog({
               </div>
 
               <div className="flex flex-row justify-end gap-3 sm:gap-4 pt-4 border-t border-gray-200 pb-2 sm:pb-0">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOpen(false)}
-                  disabled={isLoading}
-                  className="flex-1 sm:w-auto px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl border-2 border-gray-300 bg-white/80 hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200 font-medium text-sm sm:text-base order-1"
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
-                  取消
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isLoading || (activeTab === "link" && !url) || (activeTab === "text" && !content)}
-                  className="flex-1 sm:w-auto min-w-[120px] px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 shadow-lg shadow-blue-200/50 border-0 transition-all duration-200 font-semibold text-sm sm:text-base order-2"
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleClose}
+                    disabled={isLoading}
+                    className="flex-1 sm:w-auto px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl border-2 border-gray-300 bg-white/80 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-sm sm:text-base order-1"
+                  >
+                    取消
+                  </Button>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      创建中...
-                    </>
-                  ) : (
-                    <>
-                      <div className="mr-2 p-1 rounded-md bg-white/20">
-                        <FileText className="h-4 w-4" />
-                      </div>
-                      创建笔记
-                    </>
-                  )}
-                </Button>
+                  <Button
+                    type="submit"
+                    disabled={isLoading || (activeTab === "link" && !url) || (activeTab === "text" && !content)}
+                    className="flex-1 sm:w-auto min-w-[120px] px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-200/50 border-0 transition-all duration-200 font-semibold text-sm sm:text-base order-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        创建中...
+                      </>
+                    ) : (
+                      <>
+                        <div className="mr-2 p-1 rounded-md bg-white/20">
+                          <FileText className="h-4 w-4" />
+                        </div>
+                        创建笔记
+                      </>
+                    )}
+                  </Button>
+                </motion.div>
               </div>
             </form>
           </Tabs>
-        </DialogPrimitive.Content>
-      </DialogPortal>
+                </div>
+              </div>
+            </motion.div>
+          </DialogPortal>
+        )}
+      </AnimatePresence>
     </Dialog>
   )
 }
