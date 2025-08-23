@@ -130,19 +130,20 @@ export default function CreateNoteDialog({
         {children}
       </DialogTrigger>
       <DialogPortal>
-        <DialogOverlay className="bg-black/80 backdrop-blur-md fixed inset-0 z-[55] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <DialogOverlay className="bg-black/80 backdrop-blur-md fixed inset-0 z-[55] !opacity-0 !transition-all !duration-400 !ease-out data-[state=open]:!opacity-100 data-[state=closed]:!opacity-0" />
         <DialogPrimitive.Content
           ref={ref}
           className={cn(
             // 强制覆盖默认的中央定位，确保始终在底部
             "!fixed !left-[50%] !bottom-0 !top-auto !z-[60] !grid !w-full !max-w-[680px] !translate-x-[-50%] !gap-4 !border-0 !p-6 !max-h-[85vh] !overflow-hidden",
-            // 初始状态：默认隐藏在底部外（使用!important确保优先级）
-            "!translate-y-full",
-            // 动画状态 - 添加平滑的过渡效果
-            "!transition-all !duration-300 !ease-out",
-            // 打开时完全贴合底部，关闭时移到底部外
-            "data-[state=open]:!translate-y-0 data-[state=closed]:!translate-y-full",
-            "data-[state=open]:!opacity-100 data-[state=closed]:!opacity-0",
+            // 初始状态：完全隐藏在底部外，添加缩放效果
+            "!translate-y-full !scale-95 !opacity-0",
+            // 动画状态 - 使用弹性缓动函数增强弹出效果
+            "!transition-all !duration-500 !ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+            // 打开时：弹出到正确位置，恢复大小，完全显示
+            "data-[state=open]:!translate-y-0 data-[state=open]:!scale-100 data-[state=open]:!opacity-100",
+            // 关闭时：滑回底部外，缩小，淡出
+            "data-[state=closed]:!translate-y-full data-[state=closed]:!scale-95 data-[state=closed]:!opacity-0",
             // 拟物风格：圆角、阴影、渐变背景
             "rounded-t-3xl shadow-2xl",
             // 纸质质感背景
@@ -368,11 +369,6 @@ export default function CreateNoteDialog({
               </div>
             </form>
           </Tabs>
-          
-          <DialogPrimitive.Close className="absolute right-6 top-6 p-2 rounded-xl bg-gray-100/80 hover:bg-gray-200 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 shadow-sm backdrop-blur-sm">
-            <X className="h-5 w-5 text-gray-600" />
-            <span className="sr-only">关闭</span>
-          </DialogPrimitive.Close>
         </DialogPrimitive.Content>
       </DialogPortal>
     </Dialog>

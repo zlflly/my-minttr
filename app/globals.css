@@ -575,3 +575,39 @@ code:not(.hljs) {
 .dark {
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
+
+/* Enhanced dialog popup animation */
+@keyframes dialogSlideInFromBottom {
+  0% {
+    transform: translate(-50%, 100%) scale(0.95);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(-50%, -5%) scale(1.02);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, 0%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes dialogSlideOutToBottom {
+  0% {
+    transform: translate(-50%, 0%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, 100%) scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* Dialog animation classes */
+.dialog-slide-in {
+  animation: dialogSlideInFromBottom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.dialog-slide-out {
+  animation: dialogSlideOutToBottom 0.3s ease-in forwards;
+}
