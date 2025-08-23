@@ -95,11 +95,13 @@ export default function NoteContextMenu({ children, note, onHide, onEdit, onDele
                   xmlns="http://www.w3.org/2000/svg" 
                   width="1em" 
                   height="1em" 
-                  fill="currentColor" 
-                  viewBox="0 0 256 256"
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  viewBox="0 0 24 24"
                   className="w-4 h-4"
                 >
-                  <path d="M201.54,54.46A104,104,0,0,0,54.46,201.54,104,104,0,0,0,201.54,54.46ZM190.23,65.78a88.15,88.15,0,0,1,0,124.44ZM65.77,65.78,190.23,190.22a88.15,88.15,0,0,1-124.46,0A88.15,88.15,0,0,1,65.77,65.78Z"/>
+                  <circle cx="12" cy="12" r="10" />
                 </svg>
                 Colour
               </div>

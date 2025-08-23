@@ -198,7 +198,7 @@ export default function EditNoteDialog({
         <DialogPrimitive.Content
           className={cn(
             // 强制覆盖默认的中央定位，确保始终在底部
-            "!fixed !left-[50%] !bottom-0 !top-auto !z-[55] !grid !w-full !max-w-[680px] !translate-x-[-50%] !gap-4 !border-0 !p-4 sm:!p-6 !max-h-[90vh] sm:!max-h-[85vh] !overflow-y-auto",
+            "!fixed !left-[50%] !bottom-0 !top-auto !z-[55] !grid !w-full !max-w-[min(680px,95vw)] !translate-x-[-50%] !gap-4 !border-0 !p-4 sm:!p-6 !max-h-[90vh] sm:!max-h-[85vh] !overflow-y-auto",
             // 初始状态：完全隐藏在底部外，添加缩放效果
             "!translate-y-full !scale-95 !opacity-0",
             // 动画状态 - 弹出动画和高度变化动画分别控制
@@ -272,9 +272,9 @@ export default function EditNoteDialog({
                       链接地址
                     </Label>
                     <div className="relative group">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-                        <div className="p-1.5 rounded-lg bg-blue-50 group-focus-within:bg-blue-100 transition-colors">
-                          <Globe className="h-4 w-4 text-blue-600" />
+                      <div className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-10">
+                        <div className="p-1 sm:p-1.5 rounded-lg bg-blue-50 group-focus-within:bg-blue-100 transition-colors">
+                          <Globe className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                         </div>
                       </div>
                       <Input
@@ -283,13 +283,18 @@ export default function EditNoteDialog({
                         placeholder="https://example.com"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
-                        className="pl-14 pr-12 h-10 sm:h-12 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-blue-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-200 w-full overflow-hidden text-ellipsis focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                        className="pl-12 sm:pl-14 pr-10 sm:pr-12 h-10 sm:h-12 text-xs sm:text-sm md:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-blue-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-200 w-full focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                        style={{ 
+                          textOverflow: 'ellipsis',
+                          fontSize: 'clamp(12px, 2.5vw, 15px)',
+                          minWidth: 0
+                        }}
                         required
                       />
                       {isExtractingMetadata && (
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                          <div className="p-1.5 rounded-lg bg-gray-50">
-                            <Loader2 className="h-4 w-4 animate-spin text-gray-600" />
+                        <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2">
+                          <div className="p-1 sm:p-1.5 rounded-lg bg-gray-50">
+                            <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin text-gray-600" />
                           </div>
                         </div>
                       )}
@@ -297,31 +302,51 @@ export default function EditNoteDialog({
                     
                     {(metadata || note.imageUrl) && (
                       <div className="rounded-2xl border-2 border-dashed border-blue-200 bg-gradient-to-br from-blue-50/50 to-white/80 backdrop-blur-sm overflow-hidden shadow-inner">
-                        <div className="p-6">
-                          <div className="flex gap-4">
+                        <div className="p-4 sm:p-6">
+                          <div className="flex gap-3 sm:gap-4 min-w-0 overflow-hidden">
                             {(metadata?.image || note.imageUrl) && (
                               <div className="flex-shrink-0">
                                 <div className="relative">
                                   <img
                                     src={getProxiedImageUrl(metadata?.image || note.imageUrl || '') || metadata?.image || note.imageUrl}
                                     alt="预览"
-                                    className="w-20 h-20 object-cover rounded-xl shadow-sm ring-1 ring-black/5"
+                                    className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl shadow-sm ring-1 ring-black/5"
                                   />
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl"></div>
                                 </div>
                               </div>
                             )}
                             <div className="flex-1 min-w-0 overflow-hidden">
-                              <div className="flex items-center gap-2 mb-2">
+                              <div className="flex items-center gap-2 mb-2 min-w-0 max-w-full">
                                 {(metadata?.favicon || note.faviconUrl) && (
-                                  <div className="p-1 rounded-md bg-white shadow-sm">
-                                    <img src={getProxiedImageUrl(metadata?.favicon || note.faviconUrl || '') || metadata?.favicon || note.faviconUrl} alt="" className="w-4 h-4 flex-shrink-0" />
+                                  <div className="p-1 rounded-md bg-white shadow-sm flex-shrink-0">
+                                    <img src={getProxiedImageUrl(metadata?.favicon || note.faviconUrl || '') || metadata?.favicon || note.faviconUrl} alt="" className="w-4 h-4" />
                                   </div>
                                 )}
-                                <span className="text-sm font-medium text-blue-600 truncate">{metadata?.domain || note.domain}</span>
+                                <span className="text-sm font-medium text-blue-600 truncate flex-1 min-w-0 max-w-[200px]">{metadata?.domain || note.domain}</span>
                               </div>
-                              <h4 className="font-semibold text-gray-800 truncate mb-1">{metadata?.title || note.title}</h4>
-                              <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">{metadata?.description || note.description}</p>
+                              <h4 className="font-semibold text-gray-800 mb-1 text-sm sm:text-base leading-tight" 
+                                  style={{ 
+                                    display: '-webkit-box', 
+                                    WebkitLineClamp: 2, 
+                                    WebkitBoxOrient: 'vertical', 
+                                    overflow: 'hidden',
+                                    wordBreak: 'break-word',
+                                    overflowWrap: 'break-word'
+                                  }}>
+                                {metadata?.title || note.title}
+                              </h4>
+                              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed" 
+                                 style={{ 
+                                   display: '-webkit-box', 
+                                   WebkitLineClamp: 3, 
+                                   WebkitBoxOrient: 'vertical', 
+                                   overflow: 'hidden',
+                                   wordBreak: 'break-word',
+                                   overflowWrap: 'break-word'
+                                 }}>
+                                {metadata?.description || note.description}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -363,7 +388,12 @@ export default function EditNoteDialog({
                     placeholder={activeTab === "link" ? "自定义标题，留空使用网页标题" : "为你的笔记添加标题"}
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="h-10 sm:h-12 px-3 sm:px-4 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-purple-300 focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                    className="h-10 sm:h-12 px-3 sm:px-4 text-xs sm:text-sm md:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-purple-300 focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0 w-full"
+                    style={{ 
+                      textOverflow: 'ellipsis',
+                      fontSize: 'clamp(12px, 2.5vw, 15px)',
+                      minWidth: 0
+                    }}
                   />
                 </div>
 
@@ -389,18 +419,28 @@ export default function EditNoteDialog({
                   </Label>
                   <Input
                     id="tags"
-                    placeholder="用逗号分隔多个标签，如：工作,学习,想法"
+                    placeholder="用逗号、中文逗号或空格分隔多个标签，如：工作,学习,想法 或 工作，学习 想法"
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
-                    className="h-10 sm:h-12 px-3 sm:px-4 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-pink-300 focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                    className="h-10 sm:h-12 px-3 sm:px-4 text-xs sm:text-sm md:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-pink-300 focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0 w-full"
+                    style={{ 
+                      textOverflow: 'ellipsis',
+                      fontSize: 'clamp(12px, 2.5vw, 15px)',
+                      minWidth: 0
+                    }}
                   />
                   {tags && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {tags.split(',').filter(tag => tag.trim()).map((tag, index) => (
-                        <div key={index} className="inline-flex items-center px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 text-sm font-medium shadow-sm ring-1 ring-pink-200/50">
-                          {tag.trim()}
+                    <div className="flex flex-wrap gap-2 mt-3 max-w-full overflow-hidden">
+                      {tags.split(/[,，\s]+/).filter(tag => tag.trim()).slice(0, 10).map((tag, index) => (
+                        <div key={index} className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 text-xs sm:text-sm font-medium shadow-sm ring-1 ring-pink-200/50 max-w-[120px] sm:max-w-[160px]">
+                          <span className="truncate">{tag.trim()}</span>
                         </div>
                       ))}
+                      {tags.split(/[,，\s]+/).filter(tag => tag.trim()).length > 10 && (
+                        <div className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-gray-100 text-gray-500 text-xs sm:text-sm font-medium">
+                          +{tags.split(/[,，\s]+/).filter(tag => tag.trim()).length - 10}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

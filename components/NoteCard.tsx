@@ -78,7 +78,7 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
 
   const getTags = () => {
     if (!note.tags) return []
-    return note.tags.split(',').filter(tag => tag.trim()).map(tag => tag.trim())
+    return note.tags.split(/[,，\s]+/).filter(tag => tag.trim()).map(tag => tag.trim())
   }
 
   // 使用 useCallback 缓存事件处理函数
