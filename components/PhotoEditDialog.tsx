@@ -24,13 +24,15 @@ export default function PhotoEditDialog({
 }: PhotoEditDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [content, setContent] = useState(photoNote.note || "")
+  const [tags, setTags] = useState(note.tags || "")
 
   // 当对话框打开时重置表单
   useEffect(() => {
     if (open) {
       setContent(photoNote.note || "")
+      setTags(note.tags || "")
     }
-  }, [open, photoNote.note])
+  }, [open, photoNote.note, note.tags])
 
   // 平滑关闭动画处理
   const handleClose = useCallback(() => {
@@ -44,7 +46,8 @@ export default function PhotoEditDialog({
     try {
       const updateData: Partial<Note> = {
         content: content.trim() || undefined,
-        title: content.trim() ? (content.trim().slice(0, 50) + (content.trim().length > 50 ? '...' : '')) : note.title
+        title: content.trim() ? (content.trim().slice(0, 50) + (content.trim().length > 50 ? '...' : '')) : note.title,
+        tags: tags.trim()
       }
 
       const response = await updateNote(note.id, updateData)
@@ -60,15 +63,16 @@ export default function PhotoEditDialog({
     } finally {
       setIsLoading(false)
     }
-  }, [content, note.id, note.title, onNoteUpdated, handleClose])
+  }, [content, tags, note.id, note.title, onNoteUpdated, handleClose])
 
   const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
       // Reset form when closing
       setContent(photoNote.note || "")
+      setTags(note.tags || "")
     }
     onOpenChange(open)
-  }, [onOpenChange, photoNote.note])
+  }, [onOpenChange, photoNote.note, note.tags])
 
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
@@ -137,7 +141,7 @@ export default function PhotoEditDialog({
                       <div className="dash-sand-a6 bg-dash-6 h-[0.5px] bg-repeat-x"></div>
                       
                       {/* Note input */}
-                      <div className="bg-mi-amber-2 text-sand-11 rounded-b-xl px-3 py-2">
+                      <div className="bg-mi-amber-2 text-sand-11 px-3 py-2">
                         <div className="font-snpro" style={{ minHeight: '70px' }}>
                           <div 
                             contentEditable
@@ -152,6 +156,20 @@ export default function PhotoEditDialog({
                             data-placeholder="Edit note for this image"
                           />
                         </div>
+                      </div>
+                      
+                      {/* 细细的分隔线 */}
+                      <div className="h-[1px] bg-gray-200"></div>
+                      
+                      {/* 浅蓝色标签编辑区域 */}
+                      <div className="bg-blue-50 px-3 py-2 rounded-b-xl" style={{ height: '35px' }}>
+                        <input
+                          type="text"
+                          value={tags}
+                          onChange={(e) => setTags(e.target.value)}
+                          placeholder="Edit tags (separated by spaces)"
+                          className="w-full text-[13px] bg-transparent text-gray-600 placeholder-gray-400 focus:outline-none"
+                        />
                       </div>
                     </div>
                     

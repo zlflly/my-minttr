@@ -10,4 +10,5 @@ export interface PhotoNote {
 export interface NewPhotoData {
   file: File;
   note: string;
+  tags?: string;
 }

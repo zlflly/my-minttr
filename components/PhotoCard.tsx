@@ -1,8 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { PhotoNote } from '../lib/photo-types';
 import NoteContextMenu from './ContextMenu';
 import PhotoEditDialog from './PhotoEditDialog';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { updateNote } from '@/lib/api';
 import type { Note } from '@/lib/api';
 
 interface PhotoCardProps {
@@ -28,9 +30,25 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
   const [isDeleting, setIsDeleting] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false) // 添加编辑对话框状态
+  // 本地状态用于即时响应
+  const [localColor, setLocalColor] = useState(note.color)
+  const [localIsHidden, setLocalIsHidden] = useState(note.isHidden)
+  
+  // 使用 useMemo 缓存 note 对象，避免不必要的重新渲染
+  const memoizedNote = useMemo(() => ({
+    ...note,
+    color: localColor,
+    isHidden: localIsHidden
+  }), [note, localColor, localIsHidden])
+  
+  // 同步本地状态与props状态
+  useEffect(() => {
+    setLocalColor(note.color)
+    setLocalIsHidden(note.isHidden)
+  }, [note.color, note.isHidden])
+  
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('zh-CN', {
-      year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -38,17 +56,47 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
     }).format(date);
   };
 
+  const getTags = () => {
+    if (!note.tags) return []
+    return note.tags.split(/\s+/).filter(tag => tag.trim()).map(tag => tag.trim())
+  };
+
   const handleEdit = useCallback(() => {
     setShowEditDialog(true);
   }, []);
 
-  const handleHide = useCallback(() => {
-    onHide?.();
-  }, [onHide]);
+  const handleHide = useCallback(async () => {
+    // 立即更新本地状态实现即时响应
+    const newHiddenState = !localIsHidden
+    setLocalIsHidden(newHiddenState)
+    
+    try {
+      const result = await updateNote(note.id, { isHidden: newHiddenState })
+      if (result.success && result.data) {
+        onNoteUpdated?.(result.data)
+      }
+    } catch (error) {
+      console.error('Failed to update photo note visibility:', error)
+      // 如果后端更新失败，回滚本地状态
+      setLocalIsHidden(!newHiddenState)
+    }
+  }, [localIsHidden, note.id, onNoteUpdated]);
 
-  const handleColorChange = useCallback((color: "default" | "pink" | "blue" | "green") => {
-    onColorChange?.(color);
-  }, [onColorChange]);
+  const handleColorChange = useCallback(async (color: "default" | "pink" | "blue" | "green") => {
+    // 立即更新本地状态实现即时响应
+    setLocalColor(color)
+    
+    try {
+      const result = await updateNote(note.id, { color })
+      if (result.success && result.data) {
+        onNoteUpdated?.(result.data)
+      }
+    } catch (error) {
+      console.error('Failed to update photo note color:', error)
+      // 如果后端更新失败，回滚本地状态
+      setLocalColor(note.color)
+    }
+  }, [localColor, note.color, note.id, onNoteUpdated]);
 
   const handleDelete = useCallback(() => {
     setShowDeleteConfirm(true);
@@ -67,16 +115,24 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
     }, 200);
   }, []);
 
+  const handleNoteUpdated = useCallback((updatedNote: Note) => {
+    // 更新本地状态
+    setLocalColor(updatedNote.color)
+    setLocalIsHidden(updatedNote.isHidden)
+    // 通知父组件
+    onNoteUpdated?.(updatedNote)
+  }, [onNoteUpdated]);
+
   return (
     <>
     <NoteContextMenu 
-      note={note} 
+      note={memoizedNote} 
       onHide={handleHide} 
       onEdit={handleEdit} 
       onDelete={handleDelete} 
       onColorChange={handleColorChange}
     >
-      <div className={`rounded-xl shadow-border bg-sand-1 relative flex flex-col overflow-hidden group hover:shadow-lg transition-shadow duration-200 ${note.isHidden ? 'blur-sm opacity-70' : ''}`}>
+      <div className={`rounded-xl shadow-border bg-sand-1 relative flex flex-col overflow-hidden group hover:shadow-lg transition-shadow duration-200 ${localIsHidden ? 'blur-sm opacity-70' : ''}`}>
       {/* Green indicator */}
       <div className="w-[1.5px] h-4 bg-green-9 absolute top-[19px] -left-[0.7px]"></div>
       
@@ -106,28 +162,45 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
       {/* Divider */}
       <div className="dash-sand-a7 bg-dash-6 h-[0.5px] bg-repeat-x"></div>
       
-      {/* Note content */}
-      <div className="bg-mi-amber-2 overflow-hidden p-3 rounded-lg my-[5px] mx-[5px] shadow-border-amber">
-        <div className="prose prose-zinc text-mi-sm line-clamp-12 sm:line-clamp-16 prose-li:marker:text-sand-11 subpixel-antialiased prose-headings:antialiased">
-          {photoNote.note ? (
-            <div 
-              dangerouslySetInnerHTML={{ 
-                __html: photoNote.note.replace(/\*\*(.*?)\*\*/g, '<mark>$1</mark>') 
-              }} 
-            />
-          ) : (
-            <p className="text-sand-9 italic">No note added</p>
-          )}
+      {/* Note content - 只有当有内容时才显示 */}
+      {photoNote.note && photoNote.note.trim() && (
+        <>
+          <div className="bg-mi-amber-2 overflow-hidden p-3 rounded-lg my-[5px] mx-[5px] shadow-border-amber">
+            <div className="prose prose-zinc text-mi-sm line-clamp-12 sm:line-clamp-16 prose-li:marker:text-sand-11 subpixel-antialiased prose-headings:antialiased">
+              <div 
+                dangerouslySetInnerHTML={{ 
+                  __html: photoNote.note.replace(/\*\*(.*?)\*\*/g, '<mark>$1</mark>') 
+                }} 
+              />
+            </div>
+          </div>
+          
+          {/* 分隔线 */}
+          <div className="dash-sand-a7 bg-dash-6 h-[0.5px] bg-repeat-x"></div>
+        </>
+      )}
+      
+      {/* 统一的底部样式 - 标签和日期 */}
+      <div className="flex items-center justify-between px-3 py-2">
+        <div className="flex flex-wrap gap-1">
+          {getTags().map((tag, index) => (
+            <Badge key={index} variant="secondary" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
         </div>
         
-        {/* Metadata */}
-        <div className="mt-2 pt-2 border-t border-sand-a6">
-          <div className="text-xs text-sand-9">
-            {formatDate(photoNote.createdAt)}
-            {photoNote.updatedAt > photoNote.createdAt && (
-              <span className="ml-2">(edited {formatDate(photoNote.updatedAt)})</span>
-            )}
-          </div>
+        <div className="flex items-center gap-1 text-xs text-[#A3A3A3]">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span>{formatDate(photoNote.createdAt)}</span>
+          {photoNote.updatedAt > photoNote.createdAt && (
+            <span className="ml-2">(edited)</span>
+          )}
         </div>
       </div>
       
@@ -240,7 +313,7 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
   <PhotoEditDialog
     note={note}
     photoNote={photoNote}
-    onNoteUpdated={onNoteUpdated}
+    onNoteUpdated={handleNoteUpdated}
     open={showEditDialog}
     onOpenChange={setShowEditDialog}
   />

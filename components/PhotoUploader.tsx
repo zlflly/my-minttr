@@ -13,7 +13,9 @@ interface PhotoUploaderProps {
 const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSubmit }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [note, setNote] = useState('');
+  const [tags, setTags] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = useCallback((file: File) => {
@@ -78,22 +80,23 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
   }, [onOpenChange])
 
   const handleSubmit = useCallback(() => {
-    if (selectedFile) {
+    if (selectedFile && !isLoading) {
+      setIsLoading(true);
       onSubmit({
         file: selectedFile,
-        note: note.trim()
+        note: note.trim(),
+        tags: tags.trim()
       });
-      // Reset form
-      setSelectedFile(null);
-      setNote('');
-      // 使用平滑关闭动画
-      handleClose();
+      // 注意：不在这里关闭对话框，等待外部处理完成后再关闭
+      // 重置表单状态将在handleOpenChange中处理
     }
-  }, [selectedFile, note, onSubmit, handleClose]);
+  }, [selectedFile, note, tags, isLoading, onSubmit]);
 
   const resetForm = useCallback(() => {
     setSelectedFile(null);
     setNote('');
+    setTags('');
+    setIsLoading(false);
   }, []);
 
   const handleOpenChange = useCallback((open: boolean) => {
@@ -219,7 +222,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                       <div className="dash-sand-a6 bg-dash-6 h-[0.5px] bg-repeat-x"></div>
                       
                       {/* Note input */}
-                      <div className="bg-mi-amber-2 text-sand-11 rounded-b-xl px-3 py-2">
+                      <div className="bg-mi-amber-2 text-sand-11 px-3 py-2">
                         <div className="font-snpro" style={{ minHeight: '70px' }}>
                           <div 
                             contentEditable
@@ -233,28 +236,50 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                           />
                         </div>
                       </div>
+                      
+                      {/* 细细的分隔线 */}
+                      <div className="h-[1px] bg-gray-200"></div>
+                      
+                      {/* 浅蓝色标签创建区域 */}
+                      <div className="bg-blue-50 px-3 py-2 rounded-b-xl" style={{ height: '35px' }}>
+                        <input
+                          type="text"
+                          value={tags}
+                          onChange={(e) => setTags(e.target.value)}
+                          placeholder="Add tags (separated by spaces)"
+                          className="w-full text-[13px] bg-transparent text-gray-600 placeholder-gray-400 focus:outline-none"
+                        />
+                      </div>
                     </div>
                     
                     {/* Action buttons */}
                     <div className="flex gap-2 justify-end items-center w-full px-2 mt-2 pb-2">
                       <motion.button 
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                        whileTap={{ scale: isLoading ? 1 : 0.98 }}
                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
                         onClick={handleClose}
-                        className="px-4 py-2 text-sm font-medium text-sand-11 hover:text-sand-12 hover:bg-sand-a3 rounded-full transition"
+                        disabled={isLoading}
+                        className="px-4 py-2 text-sm font-medium text-sand-11 hover:text-sand-12 hover:bg-sand-a3 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Cancel
                       </motion.button>
                       <motion.button 
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                        whileTap={{ scale: isLoading ? 1 : 0.98 }}
                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
                         onClick={handleSubmit}
-                        disabled={!selectedFile}
-                        className="px-4 py-2 text-sm font-medium bg-sand-9 text-sand-1 hover:bg-sand-10 disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition"
+                        disabled={!selectedFile || isLoading}
+                        className="px-4 py-2 text-sm font-medium bg-sand-9 text-sand-1 hover:bg-sand-10 disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition flex items-center gap-2"
                       >
-                        Done
+                        {isLoading ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-sand-1/30 border-t-sand-1 rounded-full animate-spin" />
+                            Creating...
+                          </>
+                        ) : (
+                          'Done'
+                        )}
                       </motion.button>
                     </div>
                   </div>

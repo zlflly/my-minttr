@@ -97,19 +97,23 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
         title: data.note || '图片笔记',
         content: data.note,
         imageUrl: uploadResult.data.url,
-        tags: ''
+        tags: data.tags || ''
       };
       
       const response = await createNote(noteData);
       
       if (response.success && response.data) {
         onNoteCreated(response.data);
+        // 创建成功后关闭对话框
+        setPhotoUploaderOpen(false);
       } else {
         throw new Error(response.error?.message || '创建笔记失败');
       }
     } catch (error) {
       console.error('上传图片失败:', error);
       alert('图片上传失败: ' + (error instanceof Error ? error.message : '未知错误'));
+      // 发生错误时也关闭对话框，让用户可以重新尝试
+      setPhotoUploaderOpen(false);
     }
   };
 

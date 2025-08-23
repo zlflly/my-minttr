@@ -401,7 +401,7 @@ export default function CreateNoteDialog({
                   </Label>
                   <Input
                     id="tags"
-                    placeholder="用逗号、中文逗号或空格分隔多个标签，如：工作,学习,想法 或 工作，学习 想法"
+                    placeholder="用空格分隔多个标签，如：工作 学习 想法"
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
                     className="h-10 sm:h-12 px-3 sm:px-4 text-xs sm:text-sm md:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-pink-300 focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0 w-full"
@@ -413,14 +413,14 @@ export default function CreateNoteDialog({
                   />
                   {tags && (
                     <div className="flex flex-wrap gap-2 mt-3 max-w-full overflow-hidden">
-                      {tags.split(/[,，\\s]+/).filter(tag => tag.trim()).slice(0, 10).map((tag, index) => (
+                      {tags.split(/\s+/).filter(tag => tag.trim()).slice(0, 10).map((tag, index) => (
                         <div key={index} className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 text-xs sm:text-sm font-medium shadow-sm ring-1 ring-pink-200/50 max-w-[120px] sm:max-w-[160px]">
                           <span className="truncate">{tag.trim()}</span>
                         </div>
                       ))}
-                      {tags.split(/[,，\\s]+/).filter(tag => tag.trim()).length > 10 && (
+                      {tags.split(/\s+/).filter(tag => tag.trim()).length > 10 && (
                         <div className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-gray-100 text-gray-500 text-xs sm:text-sm font-medium">
-                          +{tags.split(/[,，\\s]+/).filter(tag => tag.trim()).length - 10}
+                          +{tags.split(/\s+/).filter(tag => tag.trim()).length - 10}
                         </div>
                       )}
                     </div>
