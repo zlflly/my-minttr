@@ -2,7 +2,7 @@
 
 export interface Note {
   id: string;
-  type: "LINK" | "TEXT";
+  type: "LINK" | "TEXT" | "IMAGE";
   title?: string;
   content?: string;
   url?: string;
@@ -64,7 +64,7 @@ export async function fetchNotes(page = 1, limit = 20): Promise<APIResponse<Note
 
 // 创建笔记
 export async function createNote(noteData: {
-  type?: "LINK" | "TEXT";
+  type?: "LINK" | "TEXT" | "IMAGE";
   title?: string;
   content?: string;
   url?: string;

@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Calendar, ExternalLink } from "lucide-react"
 import NoteContextMenu from "./ContextMenu"
 import EditNoteDialog from "./EditNoteDialog"
+import PhotoCard from "./PhotoCard"
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { getProxiedImageUrl } from "@/lib/image-proxy"
+import { PhotoNote } from "@/lib/photo-types"
 
 interface NoteCardProps {
   note: Note
@@ -145,6 +147,31 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
     // 通知父组件
     onNoteUpdate?.(updatedNote)
   }, [onNoteUpdate])
+
+  // 如果是图片笔记，使用PhotoCard组件
+  if (note.type === "IMAGE") {
+    const photoNote: PhotoNote = {
+      id: note.id,
+      imageUrl: note.imageUrl || '',
+      imageAlt: note.title,
+      note: note.content || '',
+      createdAt: new Date(note.createdAt),
+      updatedAt: new Date(note.updatedAt)
+    };
+
+    return (
+      <PhotoCard 
+        photoNote={photoNote}
+        onEdit={(photoNote) => {
+          // 可以在这里实现图片笔记的编辑功能
+          console.log('Edit photo note:', photoNote);
+        }}
+        onDelete={(id) => {
+          onDelete?.(id);
+        }}
+      />
+    );
+  }
 
 
   if (note.type === "LINK") {

@@ -17,31 +17,97 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const token = process.env.BLOB_READ_WRITE_TOKEN
   if (!token) {
-    return Response.json({ error: 'Missing BLOB_READ_WRITE_TOKEN' }, { status: 500 })
+    return Response.json({ 
+      success: false, 
+      error: { code: 'MISSING_TOKEN', message: 'Missing BLOB_READ_WRITE_TOKEN' } 
+    }, { status: 500 })
   }
 
   try {
-    // 支持两种 body：JSON 或原始二进制
     const contentType = request.headers.get('content-type') || ''
 
-    // 默认路径前缀，可按需改成基于用户/业务的目录
-    let pathname = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}`
-    let access: 'public' | 'private' = 'public'
+    // 处理FormData文件上传
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData()
+      const file = formData.get('file') as File
+      
+      if (!file) {
+        return Response.json({ 
+          success: false, 
+          error: { code: 'NO_FILE', message: 'No file provided' } 
+        }, { status: 400 })
+      }
 
-    if (contentType.includes('application/json')) {
-      const { path, data, access: inputAccess }: { path?: string; data: string; access?: 'public' | 'private' } = await request.json()
-      if (path) pathname = path
-      if (inputAccess) access = inputAccess
-      const result = await put(pathname, data, { access, token })
-      return Response.json({ url: result.url, pathname })
+      // 验证文件类型
+      if (!file.type.startsWith('image/')) {
+        return Response.json({ 
+          success: false, 
+          error: { code: 'INVALID_FILE_TYPE', message: 'Only image files are allowed' } 
+        }, { status: 400 })
+      }
+
+      // 验证文件大小 (最大10MB)
+      const maxSize = 10 * 1024 * 1024 // 10MB
+      if (file.size > maxSize) {
+        return Response.json({ 
+          success: false, 
+          error: { code: 'FILE_TOO_LARGE', message: 'File size must be less than 10MB' } 
+        }, { status: 400 })
+      }
+
+      // 生成唯一文件名
+      const timestamp = Date.now()
+      const randomId = Math.random().toString(36).slice(2)
+      const fileExtension = file.name.split('.').pop() || 'jpg'
+      const pathname = `images/${timestamp}-${randomId}.${fileExtension}`
+
+      // 上传到Vercel Blob
+      const arrayBuffer = await file.arrayBuffer()
+      const result = await put(pathname, Buffer.from(arrayBuffer), { 
+        access: 'public', 
+        token,
+        contentType: file.type
+      })
+
+      return Response.json({ 
+        success: true, 
+        data: { 
+          url: result.url, 
+          pathname,
+          size: file.size,
+          type: file.type
+        } 
+      })
     }
 
-    // 处理原始二进制（如从前端 fetch 直接发送 ArrayBuffer/FormData 中的 file.arrayBuffer()）
+    // 处理JSON格式的数据
+    if (contentType.includes('application/json')) {
+      const { path, data, access: inputAccess }: { path?: string; data: string; access?: 'public' | 'private' } = await request.json()
+      let pathname = path || `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}`
+      let access: 'public' | 'private' = inputAccess || 'public'
+      
+      const result = await put(pathname, data, { access, token })
+      return Response.json({ 
+        success: true, 
+        data: { url: result.url, pathname } 
+      })
+    }
+
+    // 处理原始二进制数据
     const arrayBuffer = await request.arrayBuffer()
-    const result = await put(pathname, Buffer.from(arrayBuffer), { access, token })
-    return Response.json({ url: result.url, pathname })
+    const pathname = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const result = await put(pathname, Buffer.from(arrayBuffer), { access: 'public', token })
+    
+    return Response.json({ 
+      success: true, 
+      data: { url: result.url, pathname } 
+    })
   } catch (error) {
-    return Response.json({ error: 'Failed to upload to Blob' }, { status: 500 })
+    console.error('Blob upload error:', error)
+    return Response.json({ 
+      success: false, 
+      error: { code: 'UPLOAD_FAILED', message: 'Failed to upload to Blob storage' } 
+    }, { status: 500 })
   }
 }
 

@@ -4,6 +4,46 @@
 @import "highlight.js/styles/github.css";
 
 :root {
+  /* Sand palette for minttr-photo components */
+  --sand-1: #fdfdfc;
+  --sand-2: #f9f9f8;
+  --sand-3: #f1f0ef;
+  --sand-4: #e9e8e6;
+  --sand-5: #e2e1de;
+  --sand-6: #dad9d6;
+  --sand-7: #d0ceca;
+  --sand-8: #bcbbb6;
+  --sand-9: #21201c;
+  --sand-10: #373631;
+  --sand-11: #64635e;
+  --sand-12: #21201c;
+  --sand-a1: rgba(85, 85, 0, 0.012);
+  --sand-a2: rgba(37, 37, 0, 0.027);
+  --sand-a3: rgba(32, 16, 0, 0.063);
+  --sand-a4: rgba(31, 21, 0, 0.098);
+  --sand-a5: rgba(31, 24, 0, 0.129);
+  --sand-a6: rgba(25, 19, 0, 0.161);
+  --sand-a7: rgba(29, 20, 0, 0.208);
+  --sand-a8: rgba(21, 18, 0, 0.286);
+  --sand-a9: rgba(6, 5, 0, 0.890);
+  --sand-a10: rgba(8, 6, 0, 0.808);
+  --sand-a11: rgba(10, 8, 0, 0.631);
+  --sand-a12: rgba(6, 5, 0, 0.890);
+
+  /* Green palette for minttr-photo components */
+  --green-9: #46a758;
+
+  /* Amber palette for minttr-photo components */
+  --amber-a2: rgba(255, 192, 0, 0.05);
+  --mi-amber-2: #fffbeb;
+
+  /* Dash patterns for minttr-photo */
+  --dash-6: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 2'%3e%3cpath d='M0,1 L4,1' stroke='%23dad9d6' stroke-width='1'/%3e%3c/svg%3e");
+
+  /* Shadows for minttr-photo */
+  --shadow-border: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --shadow-border-amber: 0 0 0 1px rgba(245, 158, 11, 0.2);
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -675,4 +715,96 @@ code:not(.hljs) {
   transition: height 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
               max-height 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Sand color classes for minttr-photo components */
+.bg-sand-1 { background-color: var(--sand-1); }
+.bg-sand-2 { background-color: var(--sand-2); }
+.bg-sand-3 { background-color: var(--sand-3); }
+.bg-sand-a2 { background-color: var(--sand-a2); }
+.bg-sand-a3 { background-color: var(--sand-a3); }
+.bg-mi-amber-2 { background-color: var(--mi-amber-2); }
+
+.text-sand-9 { color: var(--sand-9); }
+.text-sand-11 { color: var(--sand-11); }
+.text-sand-12 { color: var(--sand-12); }
+
+.border-sand-6 { border-color: var(--sand-6); }
+.border-sand-8 { border-color: var(--sand-8); }
+.border-sand-a6 { border-color: var(--sand-a6); }
+
+.bg-green-9 { background-color: var(--green-9); }
+
+.hover\:bg-sand-3:hover { background-color: var(--sand-3); }
+.hover\:bg-sand-10:hover { background-color: var(--sand-10); }
+.hover\:bg-sand-a3:hover { background-color: var(--sand-a3); }
+.hover\:text-sand-12:hover { color: var(--sand-12); }
+
+.shadow-border { box-shadow: var(--shadow-border); }
+.shadow-border-amber { box-shadow: var(--shadow-border-amber); }
+
+/* Dash background patterns */
+.dash-sand-a6 { 
+  background-image: var(--dash-6);
+}
+
+.dash-sand-a7 { 
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 2'%3e%3cpath d='M0,1 L4,1' stroke='%23d0ceca' stroke-width='1'/%3e%3c/svg%3e");
+}
+
+.bg-dash-6 {
+  background-image: var(--dash-6);
+}
+
+/* Typography classes for minttr-photo */
+.text-mi-sm { font-size: 14px; }
+.font-snpro { font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+/* Line clamp utilities */
+.line-clamp-12 {
+  display: -webkit-box;
+  -webkit-line-clamp: 12;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-16 {
+  display: -webkit-box;
+  -webkit-line-clamp: 16;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Prose styling for minttr-photo */
+.prose.prose-zinc {
+  color: var(--sand-12);
+}
+
+.prose.prose-zinc .prose-li\:marker\:text-sand-11 li::marker {
+  color: var(--sand-11);
+}
+
+/* ContentEditable placeholder styling */
+[contenteditable] p.is-editor-empty:first-child:before {
+  color: var(--sand-9);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+[contenteditable]:empty:before {
+  content: attr(data-placeholder);
+  color: var(--sand-9);
+  pointer-events: none;
+  display: block;
+}
+
+/* Disabled state for buttons */
+.disabled\:opacity-50:disabled {
+  opacity: 0.5;
+}
+
+.disabled\:cursor-not-allowed:disabled {
+  cursor: not-allowed;
 }
