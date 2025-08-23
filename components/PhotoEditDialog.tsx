@@ -169,6 +169,8 @@ export default function PhotoEditDialog({
                           onChange={(e) => setTags(e.target.value)}
                           placeholder="Edit tags (separated by spaces)"
                           className="w-full text-[13px] bg-transparent text-gray-600 placeholder-gray-400 focus:outline-none"
+                          autoFocus={false}
+                          tabIndex={-1}
                         />
                       </div>
                     </div>
