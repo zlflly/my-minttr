@@ -1,4 +1,5 @@
 // API 工具函数
+import { apiCache, metadataCache, generateCacheKey } from './cache'
 
 export interface Note {
   id: string;
@@ -38,6 +39,13 @@ export interface APIResponse<T> {
 // 获取笔记列表
 export async function fetchNotes(page = 1, limit = 20): Promise<APIResponse<Note[]>> {
   try {
+    // 检查缓存
+    const cacheKey = generateCacheKey.notes(page, limit)
+    const cachedData = apiCache.get(cacheKey) as APIResponse<Note[]> | null
+    if (cachedData) {
+      return cachedData
+    }
+
     const response = await fetch(`/api/notes?page=${page}&limit=${limit}`);
     
     if (!response.ok) {
@@ -49,7 +57,14 @@ export async function fetchNotes(page = 1, limit = 20): Promise<APIResponse<Note
       throw new Error('响应不是JSON格式');
     }
     
-    return response.json();
+    const data = await response.json();
+    
+    // 缓存成功的响应（1分钟TTL，因为笔记可能经常更新）
+    if (data.success) {
+      apiCache.set(cacheKey, data, 60 * 1000)
+    }
+    
+    return data;
   } catch (error) {
     console.error('获取笔记列表失败:', error);
     return {
@@ -176,6 +191,19 @@ export async function extractMetadata(url: string): Promise<APIResponse<{
   domain: string;
 }>> {
   try {
+    // 检查缓存（元数据相对稳定，可以缓存更长时间）
+    const cacheKey = generateCacheKey.metadata(url)
+    const cachedData = metadataCache.get(cacheKey) as APIResponse<{
+      title: string;
+      description: string;
+      image: string;
+      favicon: string;
+      domain: string;
+    }> | null
+    if (cachedData) {
+      return cachedData
+    }
+
     const response = await fetch('/api/metadata/extract', {
       method: 'POST',
       headers: {
@@ -193,7 +221,14 @@ export async function extractMetadata(url: string): Promise<APIResponse<{
       throw new Error('响应不是JSON格式');
     }
     
-    return response.json();
+    const data = await response.json();
+    
+    // 缓存成功的元数据（30分钟TTL）
+    if (data.success) {
+      metadataCache.set(cacheKey, data, 30 * 60 * 1000)
+    }
+    
+    return data;
   } catch (error) {
     console.error('提取元数据失败:', error);
     return {

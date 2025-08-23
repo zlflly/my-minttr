@@ -12,6 +12,7 @@ import EditNoteDialog from "./EditNoteDialog"
 import PhotoCard from "./PhotoCard"
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { getProxiedImageUrl } from "@/lib/image-proxy"
+import LazyImage from "./LazyImage"
 import { PhotoNote } from "@/lib/photo-types"
 
 interface NoteCardProps {
@@ -187,12 +188,10 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
         >
           {note.imageUrl && (
             <div className="aspect-video w-full overflow-hidden">
-              <img 
-                src={getProxiedImageUrl(note.imageUrl) || "/placeholder.svg"} 
+              <LazyImage 
+                src={note.imageUrl} 
                 alt={note.title} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                referrerPolicy="no-referrer"
-                crossOrigin="anonymous"
               />
             </div>
           )}

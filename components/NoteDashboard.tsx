@@ -1,12 +1,13 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Loader2, Calendar } from "lucide-react"
 import NoteCard from "./NoteCard"
 import NewNoteMenu from "./NewNoteMenu"
 import { Button } from "@/components/ui/button"
 import { fetchNotes, deleteNote, type Note } from "@/lib/api"
+import { DashboardSkeleton, LoadMoreSkeleton } from "./LoadingSkeleton"
 
 export default function NoteDashboard() {
   const [notes, setNotes] = useState<Note[]>([])
@@ -84,18 +85,30 @@ export default function NoteDashboard() {
     }
   }, [currentPage, hasMore, isLoadingMore])
 
-  // 无限滚动检测
+  // 节流函数
+  const throttle = useCallback((func: Function, limit: number) => {
+    let inThrottle: boolean
+    return function(this: any, ...args: any[]) {
+      if (!inThrottle) {
+        func.apply(this, args)
+        inThrottle = true
+        setTimeout(() => inThrottle = false, limit)
+      }
+    }
+  }, [])
+
+  // 无限滚动检测 - 使用节流优化性能
   useEffect(() => {
-    const handleScroll = () => {
+    const handleScroll = throttle(() => {
       if (window.innerHeight + document.documentElement.scrollTop 
           >= document.documentElement.offsetHeight - 1000 && hasMore && !isLoadingMore) {
         loadMore()
       }
-    }
+    }, 200) // 200ms 节流
 
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [loadMore, hasMore, isLoadingMore])
+  }, [loadMore, hasMore, isLoadingMore, throttle])
 
   // 组件挂载时加载笔记
   useEffect(() => {
@@ -165,13 +178,8 @@ export default function NoteDashboard() {
   return (
     <div className="min-h-screen bg-[#F6F4F0] p-4">
       {/* 内容区域 */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="flex items-center gap-2 text-[#A3A3A3]">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            加载中...
-          </div>
-        </div>
+      {isLoading && notes.length === 0 ? (
+        <DashboardSkeleton />
       ) : error ? (
         <div className="flex flex-col items-center justify-center py-12">
           <p className="text-red-500 mb-4">{error}</p>
@@ -233,15 +241,8 @@ export default function NoteDashboard() {
             }
           </div>
           
-          {/* 加载更多指示器 */}
-          {isLoadingMore && (
-            <div className="flex items-center justify-center py-8">
-              <div className="flex items-center gap-2 text-[#A3A3A3]">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                加载更多...
-              </div>
-            </div>
-          )}
+          {/* 加载更多指示器 - 使用骨架屏 */}
+          {isLoadingMore && <LoadMoreSkeleton />}
           
           {/* 已加载完所有数据提示 */}
           {!hasMore && notes.length > 0 && (

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { updateNote } from '@/lib/api';
 import type { Note } from '@/lib/api';
+import LazyImage from './LazyImage';
 
 interface PhotoCardProps {
   photoNote: PhotoNote;
@@ -140,18 +141,23 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
       <div className="relative m-1 rounded-lg overflow-hidden aspect-square w-[calc(100%-8px)]">
         {/* Blurred background */}
         <div className="absolute inset-0 blur-xl">
-          <img 
+          <LazyImage 
+            src={photoNote.imageUrl}
             alt="" 
             className="w-[120%] h-[120%] object-cover opacity-50" 
-            src={photoNote.imageUrl}
           />
         </div>
         
         {/* Main image */}
-        <img 
+        <LazyImage 
+          src={photoNote.imageUrl}
           alt={photoNote.imageAlt || "image"} 
           className="relative w-full h-full object-contain mx-auto rounded-lg cursor-pointer hover:scale-105 transition-transform duration-200" 
-          src={photoNote.imageUrl}
+        />
+        
+        {/* Click overlay for edit */}
+        <div 
+          className="absolute inset-0 cursor-pointer z-10"
           onClick={() => setShowEditDialog(true)}
         />
         
