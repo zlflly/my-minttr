@@ -111,12 +111,6 @@ export default function NoteDashboard() {
     }
     
     setNotes((prev) => {
-      // 检查是否已经存在相同ID的笔记，防止重复添加
-      const noteExists = prev.some(note => note && note.id === newNote.id)
-      if (noteExists) {
-        console.warn(`Note with id ${newNote.id} already exists, skipping duplicate`)
-        return prev
-      }
       // 确保新笔记添加到数组顶部
       return [newNote, ...prev]
     })
@@ -181,15 +175,18 @@ export default function NoteDashboard() {
         <>
           {/* Masonry layout */}
           <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
-            {notes.filter(note => note && note.id).map((note) => (
-              <div key={`note-${note.id}`} className="break-inside-avoid">
-                <NoteCard 
-                  note={note} 
-                  onDelete={handleNoteDelete}
-                  onNoteUpdate={handleNoteUpdate}
-                />
-              </div>
-            ))}
+            {notes
+              .filter((note): note is Note => Boolean(note && note.id && typeof note.id === 'string'))
+              .map((note) => (
+                <div key={`note-${note.id}`} className="break-inside-avoid">
+                  <NoteCard 
+                    note={note} 
+                    onDelete={handleNoteDelete}
+                    onNoteUpdate={handleNoteUpdate}
+                  />
+                </div>
+              ))
+            }
           </div>
           
           {/* 加载更多指示器 */}

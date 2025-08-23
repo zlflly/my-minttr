@@ -129,7 +129,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                 className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-md mx-auto"
                 initial={{ 
                   opacity: 0, 
-                  y: '100%',
+                  y: 0,
                   scale: 0.95
                 }}
                 animate={{ 
@@ -139,8 +139,11 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                 }}
                 exit={{ 
                   opacity: 0, 
-                  y: '100%',
-                  scale: 0.95
+                  scale: 0.95,
+                  transition: {
+                    duration: 0.2,
+                    ease: "easeOut"
+                  }
                 }}
                 transition={{ 
                   type: "spring",

@@ -173,7 +173,7 @@ export default function CreateNoteDialog({
               className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-md sm:max-w-[min(680px,95vw)] mx-auto"
               initial={{ 
                 opacity: 0, 
-                y: '100%',
+                y: 0,
                 scale: 0.95
               }}
               animate={{ 
@@ -183,8 +183,11 @@ export default function CreateNoteDialog({
               }}
               exit={{ 
                 opacity: 0, 
-                y: '100%',
-                scale: 0.95
+                scale: 0.95,
+                transition: {
+                  duration: 0.2,
+                  ease: "easeOut"
+                }
               }}
               transition={{ 
                 type: "spring",
