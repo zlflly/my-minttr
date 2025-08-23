@@ -27,19 +27,26 @@ export default function NoteDashboard() {
 
   // 计算网站运行天数
   useEffect(() => {
-    const startDate = new Date('2025-08-22') // 网站创建日期
-    const today = new Date()
-    const timeDiff = today.getTime() - startDate.getTime()
-    const days = Math.floor(timeDiff / (1000 * 3600 * 24))
-    setDaysSinceStart(days)
+    const calculateDays = () => {
+      const startDate = new Date('2025-08-22T00:00:00') // 网站创建日期，指定为当天开始
+      const today = new Date()
+      
+      // 使用Date对象的内置方法计算天数差
+      const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
+      const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+      
+      const timeDiff = todayOnly.getTime() - startDateOnly.getTime()
+      const days = Math.floor(timeDiff / (1000 * 3600 * 24))
+      
+      return Math.max(0, days) // 确保不会是负数
+    }
 
-    // 每天更新一次
+    setDaysSinceStart(calculateDays())
+
+    // 每小时更新一次（在日期变化时及时更新）
     const interval = setInterval(() => {
-      const newToday = new Date()
-      const newTimeDiff = newToday.getTime() - startDate.getTime()
-      const newDays = Math.floor(newTimeDiff / (1000 * 3600 * 24))
-      setDaysSinceStart(newDays)
-    }, 24 * 60 * 60 * 1000) // 每24小时更新一次
+      setDaysSinceStart(calculateDays())
+    }, 60 * 60 * 1000) // 每小时更新一次
 
     return () => clearInterval(interval)
   }, [])
