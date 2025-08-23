@@ -5,6 +5,13 @@ import PhotoUploader from './PhotoUploader';
 import CreateNoteDialog from './CreateNoteDialog';
 import { NewPhotoData } from '@/lib/photo-types';
 import { Note, createNote } from '@/lib/api';
+import { 
+  useAccessibility, 
+  AriaLabels, 
+  KeyboardKeys, 
+  createAriaProps,
+  FocusManager
+} from '@/lib/accessibility';
 
 interface NewNoteMenuProps {
   onNoteCreated: (note: Note) => void;
@@ -77,6 +84,12 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
   const [noteType, setNoteType] = useState<"link" | "text">("link");
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const justClickedRef = useRef(false); // Ref to track click interaction
+  const menuRef = useRef<HTMLDivElement>(null);
+  
+  // 可访问性工具
+  const { announce, generateId } = useAccessibility();
+  const menuId = generateId('new-note-menu');
+  const menuButtonId = generateId('menu-button');
 
   useEffect(() => {
     return () => {
@@ -91,6 +104,11 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
   const openDialog = (type: "image" | "link" | "text") => {
     triggerVibration();
     setIsExpanded(false);
+    
+    // 宣布选择的类型
+    const typeNames = { image: '图片', link: '链接', text: '文本' };
+    announce(`正在创建${typeNames[type]}笔记`);
+    
     if (type === 'image') {
       setPhotoUploaderOpen(true);
     } else {
@@ -106,6 +124,9 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
     // If we are closing the menu via click, set the ref
     if (isExpanded) {
       justClickedRef.current = true;
+      announce('菜单已关闭');
+    } else {
+      announce('新建笔记菜单已打开');
     }
 
     setIsExpanded(!isExpanded);
@@ -157,10 +178,50 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
   };
 
   const menuItems = [
-    { id: 'mind', label: 'Mind', icon: MindIcon, hotkey: '1', type: 'text' as const },
-    { id: 'link', label: 'Link', icon: LinkIcon, hotkey: '2', type: 'link' as const },
-    { id: 'image', label: 'Image', icon: ImageIcon, hotkey: '3', type: 'image' as const }
+    { id: 'mind', label: 'Mind', icon: MindIcon, hotkey: '1', type: 'text' as const, ariaLabel: '创建思维笔记' },
+    { id: 'link', label: 'Link', icon: LinkIcon, hotkey: '2', type: 'link' as const, ariaLabel: '创建链接笔记' },
+    { id: 'image', label: 'Image', icon: ImageIcon, hotkey: '3', type: 'image' as const, ariaLabel: '创建图片笔记' }
   ];
+  
+  // 键盘导航处理
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (!isExpanded) {
+      if (event.key === KeyboardKeys.ENTER || event.key === KeyboardKeys.SPACE) {
+        event.preventDefault();
+        handleMainButtonClick();
+      }
+      return;
+    }
+
+    switch (event.key) {
+      case KeyboardKeys.ESCAPE:
+        event.preventDefault();
+        setIsExpanded(false);
+        announce('菜单已关闭');
+        break;
+      case '1':
+      case '2':
+      case '3':
+        event.preventDefault();
+        const index = parseInt(event.key) - 1;
+        if (menuItems[index]) {
+          openDialog(menuItems[index].type);
+        }
+        break;
+      case KeyboardKeys.ARROW_UP:
+      case KeyboardKeys.ARROW_DOWN:
+        event.preventDefault();
+        if (menuRef.current) {
+          const focusableElements = FocusManager.getFocusableElements(menuRef.current);
+          const currentIndex = focusableElements.indexOf(document.activeElement as HTMLElement);
+          const nextIndex = event.key === KeyboardKeys.ARROW_UP 
+            ? (currentIndex - 1 + focusableElements.length) % focusableElements.length
+            : (currentIndex + 1) % focusableElements.length;
+          focusableElements[nextIndex]?.focus();
+        }
+        break;
+    }
+  };
 
   const commonStyles = {
     backgroundColor: "rgba(255, 255, 255, 0.85)",
@@ -172,16 +233,21 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
   return (
     <>
       <div 
+        ref={menuRef}
         className="fixed bottom-6 left-1/2 z-50"
         style={{ transform: 'translateX(-50%)' }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onKeyDown={handleKeyDown}
+        role="navigation"
+        aria-label={AriaLabels.MAIN_NAVIGATION}
       >
         <AnimatePresence mode="wait">
           {isExpanded ? (
             // --- EXPANDED MENU COMPONENT ---
             <motion.div
               key="menu"
+              id={menuId}
               className="w-[374px] rounded-3xl overflow-hidden pointer-events-auto mx-2"
               style={{
                 ...commonStyles,
@@ -191,6 +257,8 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
               initial="initial"
               animate="animate"
               exit="exit"
+              role="menu"
+              aria-labelledby={menuButtonId}
             >
               <motion.div variants={{ animate: { transition: { staggerChildren: 0.04, delayChildren: 0.05 } } }}>
                 <div className="relative z-10 py-2 px-4">
@@ -199,14 +267,20 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
                     <motion.button
                       key={item.id}
                       onClick={() => openDialog(item.type)}
-                      className="w-full text-[15px] font-semibold text-gray-800 hover:bg-gray-200/60 active:bg-gray-300/50 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect"
+                      className="w-full text-[15px] font-semibold text-gray-800 hover:bg-gray-200/60 active:bg-gray-300/50 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                       variants={itemVariants}
+                      role="menuitem"
+                      aria-label={item.ariaLabel}
+                      tabIndex={0}
                     >
                       <div className="flex items-center gap-2">
                         <item.icon className="w-[1em] h-[1em] text-current" />
                         {item.label}
                       </div>
-                      <kbd className="inline-flex items-center justify-center flex-shrink-0 font-mono font-normal text-xs min-w-[1.75em] h-fit px-2 py-0.5 rounded bg-white/50 text-gray-700 backdrop-blur-sm">
+                      <kbd 
+                        className="inline-flex items-center justify-center flex-shrink-0 font-mono font-normal text-xs min-w-[1.75em] h-fit px-2 py-0.5 rounded bg-white/50 text-gray-700 backdrop-blur-sm"
+                        aria-label={`快捷键 ${item.hotkey}`}
+                      >
                         {item.hotkey}
                       </kbd>
                     </motion.button>
@@ -214,8 +288,12 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
                   <motion.div className="h-[0.5px] bg-gray-200/40 mx-3 my-1" variants={itemVariants} />
                 </div>
                 <button
-                  className="w-full flex items-center justify-center gap-2 text-[15px] font-semibold text-gray-800 rounded-full select-none transition-all duration-200 active:scale-95 py-1.5"
+                  id={menuButtonId}
+                  className="w-full flex items-center justify-center gap-2 text-[15px] font-semibold text-gray-800 rounded-full select-none transition-all duration-200 active:scale-95 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   onClick={handleMainButtonClick}
+                  role="menuitem"
+                  aria-label="关闭新建菜单"
+                  tabIndex={0}
                 >
                   <motion.div animate={{ rotate: 45 }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}>
                     <PlusIcon className="w-5 h-5 text-gray-800" />
@@ -237,12 +315,18 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
               whileTap={{ scale: 0.95 }}
             >
               <button
+                id={menuButtonId}
                 onClick={handleMainButtonClick}
-                className="w-[92px] flex items-center justify-center gap-2 text-[15px] font-medium text-gray-800 rounded-3xl select-none transition-all duration-200 px-4 py-2.5"
+                className="w-[92px] flex items-center justify-center gap-2 text-[15px] font-medium text-gray-800 rounded-3xl select-none transition-all duration-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 style={{
                   ...commonStyles,
                   background: "linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75))",
                 }}
+                aria-expanded={isExpanded}
+                aria-haspopup="menu"
+                aria-controls={isExpanded ? menuId : undefined}
+                aria-label={AriaLabels.CREATE_NOTE}
+                tabIndex={0}
               >
                 <motion.div animate={{ rotate: 0 }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}>
                   <PlusIcon className="w-5 h-5 text-gray-800" />

@@ -14,6 +14,12 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { getProxiedImageUrl } from "@/lib/image-proxy"
 import LazyImage from "./LazyImage"
 import { PhotoNote } from "@/lib/photo-types"
+import { 
+  useAccessibility, 
+  AriaLabels, 
+  KeyboardKeys, 
+  createAriaProps 
+} from "@/lib/accessibility"
 
 interface NoteCardProps {
   note: Note

@@ -1,5 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+import { 
+  withValidation, 
+  createAPIResponse, 
+  securityHeaders,
+  APIError
+} from '@/lib/api-middleware';
+import { 
+  updateNoteSchema, 
+  noteIdSchema,
+  sanitizeString,
+  sanitizeUrl
+} from '@/lib/validation';
 
 // 获取单个笔记
 export async function GET(
@@ -7,41 +20,95 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
+    const { id } = await params;
+    
+    // 验证ID格式
+    const validatedId = noteIdSchema.parse(id);
+    
     const note = await prisma.note.findUnique({
-      where: { id },
-      include: {
+      where: { id: validatedId },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        content: true,
+        url: true,
+        description: true,
+        domain: true,
+        faviconUrl: true,
+        imageUrl: true,
+        tags: true,
+        color: true,
+        isHidden: true,
+        isArchived: true,
+        isFavorite: true,
+        createdAt: true,
+        updatedAt: true,
+        accessedAt: true,
         collections: {
           include: {
-            collection: true
-          }
-        }
-      }
-    })
+            collection: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                color: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
     if (!note) {
       return NextResponse.json(
-        { success: false, error: { code: 'NOTE_NOT_FOUND', message: '笔记不存在' } },
-        { status: 404 }
-      )
+        createAPIResponse(undefined, {
+          code: 'NOTE_NOT_FOUND',
+          message: '笔记不存在'
+        }),
+        { 
+          status: 404,
+          headers: securityHeaders()
+        }
+      );
     }
 
-    // 更新访问时间
-    await prisma.note.update({
-      where: { id },
-      data: { accessedAt: new Date() }
-    })
+    // 异步更新访问时间（不等待结果）
+    prisma.note.update({
+      where: { id: validatedId },
+      data: { accessedAt: new Date() },
+    }).catch(console.error);
 
-    return NextResponse.json({
-      success: true,
-      data: note
-    })
-  } catch (error) {
-    console.error('获取笔记失败:', error)
     return NextResponse.json(
-      { success: false, error: { code: 'FETCH_NOTE_ERROR', message: '获取笔记失败' } },
-      { status: 500 }
-    )
+      createAPIResponse(note),
+      { headers: securityHeaders() }
+    );
+  } catch (error) {
+    console.error('获取笔记失败:', error);
+    
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        createAPIResponse(undefined, {
+          code: 'INVALID_NOTE_ID',
+          message: '无效的笔记ID格式'
+        }),
+        { 
+          status: 400,
+          headers: securityHeaders()
+        }
+      );
+    }
+    
+    return NextResponse.json(
+      createAPIResponse(undefined, {
+        code: 'FETCH_NOTE_ERROR',
+        message: '获取笔记失败'
+      }),
+      { 
+        status: 500,
+        headers: securityHeaders()
+      }
+    );
   }
 }
 
@@ -51,39 +118,87 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
-    const body = await request.json()
-    const { title, content, url, description, domain, faviconUrl, imageUrl, tags, isArchived, isFavorite, color, isHidden } = body
+    const { id } = await params;
+    const validatedId = noteIdSchema.parse(id);
+    
+    const body = await request.json();
+    const validatedData = updateNoteSchema.parse(body);
+
+    // 清理输入数据
+    const cleanData = {
+      ...(validatedData.title !== undefined && {
+        title: validatedData.title ? sanitizeString(validatedData.title) : null
+      }),
+      ...(validatedData.content !== undefined && {
+        content: validatedData.content ? sanitizeString(validatedData.content) : null
+      }),
+      ...(validatedData.url !== undefined && {
+        url: validatedData.url ? sanitizeUrl(validatedData.url) : null
+      }),
+      ...(validatedData.description !== undefined && {
+        description: validatedData.description ? sanitizeString(validatedData.description) : null
+      }),
+      ...(validatedData.tags !== undefined && {
+        tags: validatedData.tags ? sanitizeString(validatedData.tags) : ''
+      }),
+      ...(validatedData.isArchived !== undefined && { isArchived: validatedData.isArchived }),
+      ...(validatedData.isFavorite !== undefined && { isFavorite: validatedData.isFavorite }),
+      ...(validatedData.color !== undefined && { color: validatedData.color }),
+      ...(validatedData.isHidden !== undefined && { isHidden: validatedData.isHidden }),
+      updatedAt: new Date(),
+    };
 
     const note = await prisma.note.update({
-      where: { id },
-      data: {
-        title,
-        content,
-        url,
-        description,
-        domain,
-        faviconUrl,
-        imageUrl,
-        tags,
-        isArchived,
-        isFavorite,
-        color,
-        isHidden,
-        updatedAt: new Date()
-      }
-    })
+      where: { id: validatedId },
+      data: cleanData,
+    });
 
-    return NextResponse.json({
-      success: true,
-      data: note
-    })
-  } catch (error) {
-    console.error('更新笔记失败:', error)
     return NextResponse.json(
-      { success: false, error: { code: 'UPDATE_NOTE_ERROR', message: '更新笔记失败' } },
-      { status: 500 }
-    )
+      createAPIResponse(note),
+      { headers: securityHeaders() }
+    );
+  } catch (error) {
+    console.error('更新笔记失败:', error);
+    
+    if (error instanceof z.ZodError) {
+      const errorMessage = error.errors
+        .map(err => `${err.path.join('.')}: ${err.message}`)
+        .join(', ');
+      return NextResponse.json(
+        createAPIResponse(undefined, {
+          code: 'VALIDATION_ERROR',
+          message: `输入验证失败: ${errorMessage}`
+        }),
+        { 
+          status: 400,
+          headers: securityHeaders()
+        }
+      );
+    }
+    
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+      return NextResponse.json(
+        createAPIResponse(undefined, {
+          code: 'NOTE_NOT_FOUND',
+          message: '笔记不存在'
+        }),
+        { 
+          status: 404,
+          headers: securityHeaders()
+        }
+      );
+    }
+    
+    return NextResponse.json(
+      createAPIResponse(undefined, {
+        code: 'UPDATE_NOTE_ERROR',
+        message: '更新笔记失败'
+      }),
+      { 
+        status: 500,
+        headers: securityHeaders()
+      }
+    );
   }
 }
 
@@ -93,20 +208,61 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
-    await prisma.note.delete({
-      where: { id }
-    })
+    const { id } = await params;
+    const validatedId = noteIdSchema.parse(id);
+    
+    // 检查笔记是否存在
+    const existingNote = await prisma.note.findUnique({
+      where: { id: validatedId },
+      select: { id: true },
+    });
 
-    return NextResponse.json({
-      success: true,
-      data: { message: '笔记已删除' }
-    })
-  } catch (error) {
-    console.error('删除笔记失败:', error)
+    if (!existingNote) {
+      return NextResponse.json(
+        createAPIResponse(undefined, {
+          code: 'NOTE_NOT_FOUND',
+          message: '笔记不存在'
+        }),
+        { 
+          status: 404,
+          headers: securityHeaders()
+        }
+      );
+    }
+
+    await prisma.note.delete({
+      where: { id: validatedId },
+    });
+
     return NextResponse.json(
-      { success: false, error: { code: 'DELETE_NOTE_ERROR', message: '删除笔记失败' } },
-      { status: 500 }
-    )
+      createAPIResponse({ message: '笔记已删除' }),
+      { headers: securityHeaders() }
+    );
+  } catch (error) {
+    console.error('删除笔记失败:', error);
+    
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        createAPIResponse(undefined, {
+          code: 'INVALID_NOTE_ID',
+          message: '无效的笔记ID格式'
+        }),
+        { 
+          status: 400,
+          headers: securityHeaders()
+        }
+      );
+    }
+    
+    return NextResponse.json(
+      createAPIResponse(undefined, {
+        code: 'DELETE_NOTE_ERROR',
+        message: '删除笔记失败'
+      }),
+      { 
+        status: 500,
+        headers: securityHeaders()
+      }
+    );
   }
 }

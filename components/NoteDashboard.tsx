@@ -6,7 +6,8 @@ import { Loader2, Calendar } from "lucide-react"
 import NoteCard from "./NoteCard"
 import NewNoteMenu from "./NewNoteMenu"
 import { Button } from "@/components/ui/button"
-import { fetchNotes, deleteNote, type Note } from "@/lib/api"
+import { fetchNotes, deleteNote } from "@/lib/api"
+import type { Note, ThrottledFunction } from "@/lib/types"
 import { DashboardSkeleton, LoadMoreSkeleton } from "./LoadingSkeleton"
 
 export default function NoteDashboard() {
@@ -86,29 +87,35 @@ export default function NoteDashboard() {
   }, [currentPage, hasMore, isLoadingMore])
 
   // 节流函数
-  const throttle = useCallback((func: Function, limit: number) => {
-    let inThrottle: boolean
-    return function(this: any, ...args: any[]) {
+  const throttle = useCallback(<T extends (...args: unknown[]) => void>(
+    func: T, 
+    limit: number
+  ): ThrottledFunction<T> => {
+    let inThrottle = false;
+    return (...args: Parameters<T>) => {
       if (!inThrottle) {
-        func.apply(this, args)
-        inThrottle = true
-        setTimeout(() => inThrottle = false, limit)
+        func(...args);
+        inThrottle = true;
+        setTimeout(() => { inThrottle = false; }, limit);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   // 无限滚动检测 - 使用节流优化性能
   useEffect(() => {
     const handleScroll = throttle(() => {
-      if (window.innerHeight + document.documentElement.scrollTop 
-          >= document.documentElement.offsetHeight - 1000 && hasMore && !isLoadingMore) {
-        loadMore()
+      const scrollThreshold = 1000;
+      const hasReachedBottom = window.innerHeight + document.documentElement.scrollTop 
+        >= document.documentElement.offsetHeight - scrollThreshold;
+      
+      if (hasReachedBottom && hasMore && !isLoadingMore) {
+        loadMore();
       }
-    }, 200) // 200ms 节流
+    }, 200); // 200ms 节流
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [loadMore, hasMore, isLoadingMore, throttle])
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loadMore, hasMore, isLoadingMore, throttle]);
 
   // 组件挂载时加载笔记
   useEffect(() => {
@@ -212,13 +219,16 @@ export default function NoteDashboard() {
                   return Boolean(
                     note && 
                     typeof note === 'object' && 
+                    'id' in note &&
                     note.id && 
                     typeof note.id === 'string' &&
-                    note.id.length > 0
-                  )
+                    note.id.length > 0 &&
+                    'type' in note &&
+                    ['LINK', 'TEXT', 'IMAGE'].includes(note.type as string)
+                  );
                 } catch (error) {
-                  console.warn('Invalid note object:', note, error)
-                  return false
+                  console.warn('Invalid note object:', note, error);
+                  return false;
                 }
               })
               .map((note) => {

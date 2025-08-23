@@ -119,9 +119,9 @@ export function NoteCardSkeleton({ variant = 'default' }: { variant?: 'default' 
 export function DashboardSkeleton() {
   return (
     <div className="min-h-screen bg-[#F6F4F0] p-4">
-      {/* 使用与实际布局相同的 Masonry 布局 */}
+      {/* 使用与实际布局相同的 Masonry 布局，让卡片自然交错排列 */}
       <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
-        {/* 第一列 */}
+        {/* 混合排列所有卡片，让 CSS columns 自动分配到各列 */}
         <div className="break-inside-avoid">
           <NoteCardSkeleton variant="default" />
         </div>
@@ -129,33 +129,34 @@ export function DashboardSkeleton() {
           <NoteCardSkeleton variant="short" />
         </div>
         <div className="break-inside-avoid">
-          <NoteCardSkeleton variant="tall" />
-        </div>
-        
-        {/* 第二列 - md及以上显示 */}
-        <div className="break-inside-avoid hidden md:block">
           <NoteCardSkeleton variant="image" />
         </div>
-        <div className="break-inside-avoid hidden md:block">
+        <div className="break-inside-avoid">
+          <NoteCardSkeleton variant="tall" />
+        </div>
+        <div className="break-inside-avoid">
           <NoteCardSkeleton variant="default" />
         </div>
-        
-        {/* 第三列 - lg及以上显示 */}
-        <div className="break-inside-avoid hidden lg:block">
+        <div className="break-inside-avoid">
           <NoteCardSkeleton variant="short" />
         </div>
-        <div className="break-inside-avoid hidden lg:block">
+        <div className="break-inside-avoid">
+          <NoteCardSkeleton variant="image" />
+        </div>
+        <div className="break-inside-avoid">
           <NoteCardSkeleton variant="tall" />
         </div>
-        
-        {/* 第四列 - xl及以上显示 */}
-        <div className="break-inside-avoid hidden xl:block">
+        <div className="break-inside-avoid">
           <NoteCardSkeleton variant="default" />
         </div>
-        
-        {/* 第五列 - 2xl及以上显示 */}
-        <div className="break-inside-avoid hidden 2xl:block">
+        <div className="break-inside-avoid">
+          <NoteCardSkeleton variant="short" />
+        </div>
+        <div className="break-inside-avoid">
           <NoteCardSkeleton variant="image" />
+        </div>
+        <div className="break-inside-avoid">
+          <NoteCardSkeleton variant="default" />
         </div>
       </div>
     </div>
@@ -166,29 +167,24 @@ export function DashboardSkeleton() {
 export function LoadMoreSkeleton() {
   return (
     <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4 mt-4">
-      {/* 第一列 */}
+      {/* 让卡片自然交错排列，模拟真实的加载更多效果 */}
       <div className="break-inside-avoid">
         <NoteCardSkeleton variant="short" />
       </div>
-      
-      {/* 第二列 - md及以上显示 */}
-      <div className="break-inside-avoid hidden md:block">
+      <div className="break-inside-avoid">
         <NoteCardSkeleton variant="default" />
       </div>
-      
-      {/* 第三列 - lg及以上显示 */}
-      <div className="break-inside-avoid hidden lg:block">
+      <div className="break-inside-avoid">
         <NoteCardSkeleton variant="image" />
       </div>
-      
-      {/* 第四列 - xl及以上显示 */}
-      <div className="break-inside-avoid hidden xl:block">
+      <div className="break-inside-avoid">
         <NoteCardSkeleton variant="tall" />
       </div>
-      
-      {/* 第五列 - 2xl及以上显示 */}
-      <div className="break-inside-avoid hidden 2xl:block">
+      <div className="break-inside-avoid">
         <NoteCardSkeleton variant="default" />
+      </div>
+      <div className="break-inside-avoid">
+        <NoteCardSkeleton variant="short" />
       </div>
     </div>
   )

@@ -1,39 +1,61 @@
 // API 工具函数
-import { apiCache, metadataCache, generateCacheKey } from './cache'
+import { apiCache, metadataCache, generateCacheKey } from './cache';
+import type { 
+  Note, 
+  APIResponse, 
+  CreateNoteData, 
+  UpdateNoteData, 
+  LinkMetadata,
+  OperationResult 
+} from './types';
+import { 
+  createNoteSchema, 
+  updateNoteSchema, 
+  metadataExtractionSchema,
+  paginationSchema,
+  sanitizeString,
+  sanitizeUrl
+} from './validation';
+import { 
+  handleError, 
+  createNetworkError, 
+  createValidationError,
+  ErrorType,
+  ErrorSeverity
+} from './error-handler';
 
-export interface Note {
-  id: string;
-  type: "LINK" | "TEXT" | "IMAGE";
-  title?: string;
-  content?: string;
-  url?: string;
-  description?: string;
-  domain?: string;
-  faviconUrl?: string;
-  imageUrl?: string;
-  tags: string;
-  color?: "default" | "pink" | "blue" | "green";
-  isHidden?: boolean;
-  isArchived: boolean;
-  isFavorite: boolean;
-  createdAt: string;
-  updatedAt: string;
-  accessedAt: string;
-}
+// 重新导出类型，保持向后兼容
+export type { Note, APIResponse } from './types';
 
-export interface APIResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-  };
-  pagination?: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+// API错误处理助手
+function handleAPIError(error: unknown, context: string): never {
+  if (error instanceof Error) {
+    // 网络错误
+    if (error.message.includes('fetch')) {
+      const networkError = createNetworkError(
+        '网络请求失败，请检查网络连接',
+        { component: 'API', action: context }
+      );
+      handleError(networkError);
+      throw networkError;
+    }
+    
+    // 验证错误
+    if (error.name === 'ZodError') {
+      const validationError = createValidationError(
+        '数据验证失败',
+        { originalError: error.message },
+        { component: 'API', action: context }
+      );
+      handleError(validationError);
+      throw validationError;
+    }
+  }
+  
+  // 未知错误
+  const unknownError = new Error(error instanceof Error ? error.message : '未知API错误');
+  handleError(unknownError);
+  throw unknownError;
 }
 
 // 获取笔记列表
@@ -49,7 +71,8 @@ export async function fetchNotes(page = 1, limit = 20): Promise<APIResponse<Note
     const response = await fetch(`/api/notes?page=${page}&limit=${limit}`);
     
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
     }
     
     const contentType = response.headers.get('content-type');
@@ -67,6 +90,11 @@ export async function fetchNotes(page = 1, limit = 20): Promise<APIResponse<Note
     return data;
   } catch (error) {
     console.error('获取笔记列表失败:', error);
+    try {
+      handleAPIError(error, 'fetchNotes');
+    } catch {
+      // 错误已被处理，返回失败响应
+    }
     return {
       success: false,
       error: {
@@ -99,7 +127,8 @@ export async function createNote(noteData: {
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
     }
     
     const contentType = response.headers.get('content-type');
@@ -110,6 +139,11 @@ export async function createNote(noteData: {
     return response.json();
   } catch (error) {
     console.error('创建笔记失败:', error);
+    try {
+      handleAPIError(error, 'createNote');
+    } catch {
+      // 错误已被处理，返回失败响应
+    }
     return {
       success: false,
       error: {
@@ -132,7 +166,8 @@ export async function updateNote(id: string, noteData: Partial<Note>): Promise<A
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
     }
     
     const contentType = response.headers.get('content-type');
@@ -143,6 +178,11 @@ export async function updateNote(id: string, noteData: Partial<Note>): Promise<A
     return response.json();
   } catch (error) {
     console.error('更新笔记失败:', error);
+    try {
+      handleAPIError(error, 'updateNote');
+    } catch {
+      // 错误已被处理，返回失败响应
+    }
     return {
       success: false,
       error: {
@@ -161,7 +201,8 @@ export async function deleteNote(id: string): Promise<APIResponse<{ message: str
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
     }
     
     const contentType = response.headers.get('content-type');
@@ -172,6 +213,11 @@ export async function deleteNote(id: string): Promise<APIResponse<{ message: str
     return response.json();
   } catch (error) {
     console.error('删除笔记失败:', error);
+    try {
+      handleAPIError(error, 'deleteNote');
+    } catch {
+      // 错误已被处理，返回失败响应
+    }
     return {
       success: false,
       error: {
@@ -213,7 +259,8 @@ export async function extractMetadata(url: string): Promise<APIResponse<{
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
     }
     
     const contentType = response.headers.get('content-type');
@@ -231,6 +278,11 @@ export async function extractMetadata(url: string): Promise<APIResponse<{
     return data;
   } catch (error) {
     console.error('提取元数据失败:', error);
+    try {
+      handleAPIError(error, 'extractMetadata');
+    } catch {
+      // 错误已被处理，返回失败响应
+    }
     return {
       success: false,
       error: {

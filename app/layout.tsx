@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -52,7 +53,16 @@ html {
 }
         `}</style>
       </head>
-      <body>{children}</body>
+      <body>
+        <ErrorBoundary
+          onError={(error, errorInfo) => {
+            // 在生产环境中，这里可以集成错误报告服务
+            console.error('Application Error:', error, errorInfo);
+          }}
+        >
+          {children}
+        </ErrorBoundary>
+      </body>
     </html>
   )
 }
