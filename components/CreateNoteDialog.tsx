@@ -33,7 +33,11 @@ export default function CreateNoteDialog({
 }: CreateNoteDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"link" | "text">(initialTab)
-  const [isTransitioning, setIsTransitioning] = useState(false)
+
+  // 当 initialTab 变化时更新 activeTab
+  useEffect(() => {
+    setActiveTab(initialTab)
+  }, [initialTab])
   
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const setOpen = controlledOnOpenChange || setInternalOpen
@@ -64,13 +68,7 @@ export default function CreateNoteDialog({
     setContent("")
     setTags("")
     setMetadata(null)
-    setActiveTab(initialTab) // 重置为初始标签页
   }
-
-  // 当initialTab变化时更新activeTab
-  useEffect(() => {
-    setActiveTab(initialTab)
-  }, [initialTab])
 
   // 当对话框打开时，设置 contentEditable 的内容
   useEffect(() => {
@@ -83,24 +81,6 @@ export default function CreateNoteDialog({
       }, 100)
     }
   }, [open, description])
-
-  // 平滑切换标签 - 使用对称快速模糊过渡
-  const handleTabChange = (value: string) => {
-    const newTab = value as "link" | "text"
-    if (newTab === activeTab || isTransitioning) return
-    
-    setIsTransitioning(true)
-    
-    // 模糊阶段 (80ms) - 在此期间切换内容
-    setTimeout(() => {
-      setActiveTab(newTab)
-    }, 40) // 在模糊的中间时刻切换内容
-    
-    // 清晰化完成后结束过渡 (80ms + 80ms = 160ms)
-    setTimeout(() => {
-      setIsTransitioning(false)
-    }, 160)
-  }
 
   // 自动提取链接元数据
   useEffect(() => {
@@ -220,25 +200,7 @@ export default function CreateNoteDialog({
                 <div className="flex flex-col gap-2 max-h-full overflow-hidden flex-1 justify-between">
                   <div className="flex flex-col flex-1 overflow-hidden shadow-border rounded-xl">
           
-                    {/* 标题显示区域 */}
-                    <div className="w-full min-h-[60px] flex items-center justify-center border-dashed border-2 border-sand-6 bg-sand-2">
-                      <div className="flex items-center gap-2 text-sand-12 font-medium">
-                        {activeTab === "link" ? (
-                          <>
-                            <Link className="h-5 w-5" />
-                            <span>创建链接笔记</span>
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="h-5 w-5" />
-                            <span>创建文本笔记</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Divider */}
-                    <div className="dash-sand-a6 bg-dash-6 h-[0.5px] bg-repeat-x"></div>
+
 
                     {/* 主内容输入区域 */}
                     <form id="create-note-form" onSubmit={handleSubmit}>
@@ -337,7 +299,7 @@ export default function CreateNoteDialog({
                       <div className="h-[1px] bg-gray-200"></div>
                       
                       {/* 标签输入区域 */}
-                      <div className="bg-blue-50 px-3 py-2 rounded-b-xl" style={{ height: '35px' }}>
+                      <div className="bg-blue-50 px-3 py-2" style={{ height: '35px' }}>
                         <input
                           type="text"
                           value={tags}

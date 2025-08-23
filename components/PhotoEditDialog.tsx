@@ -188,7 +188,7 @@ export default function PhotoEditDialog({
                       <div className="h-[1px] bg-gray-200"></div>
                       
                       {/* 浅蓝色标签编辑区域 */}
-                      <div className="bg-blue-50 px-3 py-2 rounded-b-xl" style={{ height: '35px' }}>
+                      <div className="bg-blue-50 px-3 py-2" style={{ height: '35px' }}>
                         <input
                           type="text"
                           value={tags}

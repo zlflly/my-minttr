@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, Link, FileText, Globe, Image, Tag, X } from "lucide-react"
@@ -31,7 +31,11 @@ export default function EditNoteDialog({
   onOpenChange 
 }: EditNoteDialogProps) {
   const [activeTab, setActiveTab] = useState<"link" | "text">(note.type.toLowerCase() as "link" | "text")
-  const [isTransitioning, setIsTransitioning] = useState(false)
+
+  // 当 note 类型变化时更新 activeTab
+  useEffect(() => {
+    setActiveTab(note.type.toLowerCase() as "link" | "text")
+  }, [note.type])
   const [isLoading, setIsLoading] = useState(false)
   const [isExtractingMetadata, setIsExtractingMetadata] = useState(false)
   
@@ -59,7 +63,6 @@ export default function EditNoteDialog({
     setContent(note.content || "")
     setTags(note.tags || "")
     setMetadata(null)
-    setActiveTab(note.type.toLowerCase() as "link" | "text")
     setIsLoading(false)
     setIsExtractingMetadata(false)
   }, [note])
@@ -112,23 +115,7 @@ export default function EditNoteDialog({
     }
   }, [note.id, open, resetForm])
 
-  // 平滑切换标签 - 使用对称快速模糊过渡
-  const handleTabChange = useCallback((value: string) => {
-    const newTab = value as "link" | "text"
-    if (newTab === activeTab || isTransitioning) return
-    
-    setIsTransitioning(true)
-    
-    // 模糊阶段 (80ms) - 在此期间切换内容
-    setTimeout(() => {
-      setActiveTab(newTab)
-    }, 40) // 在模糊的中间时刻切换内容
-    
-    // 清晰化完成后结束过渡 (80ms + 80ms = 160ms)
-    setTimeout(() => {
-      setIsTransitioning(false)
-    }, 160)
-  }, [activeTab, isTransitioning])
+
 
   // 自动提取链接元数据
   useEffect(() => {
@@ -251,30 +238,7 @@ export default function EditNoteDialog({
           <div className="bg-sand-1 rounded-t-xl shadow-border flex-1 max-h-[90vh] overflow-hidden flex flex-col mb-0">
             <div className="flex flex-col gap-2 max-h-full overflow-hidden flex-1 justify-between">
               <div className="flex flex-col flex-1 overflow-hidden shadow-border rounded-xl">
-                {/* 标签页选择器 */}
-                <div className="w-full min-h-[60px] flex items-center justify-center border-dashed border-2 border-sand-6 bg-sand-2">
-                  <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-sand-3 rounded-lg">
-                <TabsTrigger 
-                  value="link" 
-                        className="flex items-center gap-2 h-10 rounded-md font-medium text-sm transition-all duration-200 data-[state=active]:bg-sand-1 data-[state=active]:text-sand-12 data-[state=active]:shadow-sm"
-                >
-                        <Link className="h-4 w-4" />
-                  链接笔记
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="text" 
-                        className="flex items-center gap-2 h-10 rounded-md font-medium text-sm transition-all duration-200 data-[state=active]:bg-sand-1 data-[state=active]:text-sand-12 data-[state=active]:shadow-sm"
-                >
-                        <FileText className="h-4 w-4" />
-                  文本笔记
-                </TabsTrigger>
-              </TabsList>
-                  </Tabs>
-            </div>
 
-                {/* Divider */}
-                <div className="dash-sand-a6 bg-dash-6 h-[0.5px] bg-repeat-x"></div>
 
                 {/* 主内容输入区域 */}
                 <form id="edit-note-form" onSubmit={handleSubmit}>
@@ -373,7 +337,7 @@ export default function EditNoteDialog({
                   <div className="h-[1px] bg-gray-200"></div>
                   
                   {/* 标签输入区域 */}
-                  <div className="bg-blue-50 px-3 py-2 rounded-b-xl" style={{ height: '35px' }}>
+                  <div className="bg-blue-50 px-3 py-2" style={{ height: '35px' }}>
                     <input
                       type="text"
                     value={tags}
