@@ -181,15 +181,7 @@ export default function CreateNoteDialog({
             boxShadow: '0 -25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
           }}
         >
-          <div className="flex flex-col space-y-1.5 text-center mb-4 sm:mb-6">
-            <DialogTitle className="text-xl sm:text-2xl font-bold leading-none tracking-tight flex items-center justify-center gap-3 text-gray-800">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 shadow-inner">
-                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-              </div>
-              创建新笔记
-            </DialogTitle>
-            <p className="text-sm text-gray-500 mt-2">捕获你的想法和发现</p>
-          </div>
+
           
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <div className="relative mb-4 sm:mb-6">
