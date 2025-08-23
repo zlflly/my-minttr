@@ -795,9 +795,21 @@ code:not(.hljs) {
 
 [contenteditable]:empty:before {
   content: attr(data-placeholder);
-  color: #9ca3af;
+  color: #9ca3af !important;
   pointer-events: none;
   display: block;
+  position: relative;
+  z-index: 1;
+}
+
+/* More specific selector for our dialog contenteditable elements */
+.prose[contenteditable]:empty:before {
+  content: attr(data-placeholder);
+  color: #9ca3af !important;
+  pointer-events: none;
+  display: block;
+  position: relative;
+  z-index: 1;
 }
 
 /* Disabled state for buttons */

@@ -74,13 +74,18 @@ export default function CreateNoteDialog({
   useEffect(() => {
     if (open) {
       setTimeout(() => {
-        const editableDiv = document.querySelector('[contenteditable="true"][data-placeholder="Add description (optional)"]') as HTMLDivElement
+        const editableDiv = document.querySelector('[contenteditable="true"][data-placeholder=" Add description (optional)"]') as HTMLDivElement
         if (editableDiv) {
-          editableDiv.textContent = description || ""
+          // 只有当 description 不为空时才设置内容，否则保持空状态以显示占位符
+          if (description.trim()) {
+            editableDiv.textContent = description
+          } else {
+            editableDiv.textContent = ""
+          }
         }
       }, 100)
     }
-  }, [open, description])
+  }, [open]) // 只在 open 状态变化时触发，不监听 description
 
   // 自动提取链接元数据
   useEffect(() => {
@@ -212,7 +217,7 @@ export default function CreateNoteDialog({
                               type="url"
                               value={url}
                               onChange={(e) => setUrl(e.target.value)}
-                              placeholder="Paste a link"
+                              placeholder=" Paste a link"
                               className="w-full text-[15px] bg-transparent text-sand-12 placeholder-sand-9 focus:outline-none"
                               required
                             />
@@ -267,7 +272,7 @@ export default function CreateNoteDialog({
                             <textarea
                               value={content}
                               onChange={(e) => setContent(e.target.value)}
-                              placeholder="Write your note here..."
+                              placeholder=" Write your note here..."
                               className="w-full min-h-[120px] text-[15px] bg-transparent text-sand-12 placeholder-sand-9 focus:outline-none resize-none"
                               required
                             />
@@ -290,7 +295,7 @@ export default function CreateNoteDialog({
                               setDescription(target.textContent || '')
                             }}
                             suppressContentEditableWarning={true}
-                            data-placeholder="Add description (optional)"
+                            data-placeholder=" Add description (optional)"
                           />
                         </div>
                       </div>
@@ -304,7 +309,7 @@ export default function CreateNoteDialog({
                           type="text"
                           value={tags}
                           onChange={(e) => setTags(e.target.value)}
-                          placeholder="Add tags (separated by spaces)"
+                          placeholder=" Add tags (separated by spaces)"
                           className="w-full text-[13px] bg-transparent text-gray-600 placeholder-gray-400 focus:outline-none"
                           autoFocus={false}
                           tabIndex={-1}

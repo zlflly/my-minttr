@@ -129,7 +129,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                 className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-md mx-auto"
                 initial={{ 
                   opacity: 0, 
-                  y: 0,
+                  y: "100%",
                   scale: 0.95
                 }}
                 animate={{ 
@@ -139,10 +139,11 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                 }}
                 exit={{ 
                   opacity: 0, 
+                  y: "100%",
                   scale: 0.95,
                   transition: {
-                    duration: 0.2,
-                    ease: "easeOut"
+                    duration: 0.3,
+                    ease: "easeInOut"
                   }
                 }}
                 transition={{ 
@@ -235,7 +236,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                               const target = e.target as HTMLDivElement;
                               setNote(target.textContent || '');
                             }}
-                            data-placeholder="Write a note"
+                            data-placeholder=" Write a note"
                           />
                         </div>
                       </div>
@@ -249,7 +250,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                           type="text"
                           value={tags}
                           onChange={(e) => setTags(e.target.value)}
-                          placeholder="Add tags (separated by spaces)"
+                          placeholder=" Add tags (separated by spaces)"
                           className="w-full text-[13px] bg-transparent text-gray-600 placeholder-gray-400 focus:outline-none"
                           autoFocus={false}
                           tabIndex={-1}

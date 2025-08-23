@@ -100,18 +100,34 @@ export default function EditNoteDialog({
     } else {
       // 当对话框打开时，设置 contentEditable 的内容
       setTimeout(() => {
-        const editableDiv = document.querySelector('[contenteditable="true"][data-placeholder="Edit description (optional)"]') as HTMLDivElement
+        const editableDiv = document.querySelector('[contenteditable="true"][data-placeholder=" Edit description (optional)"]') as HTMLDivElement
         if (editableDiv) {
-          editableDiv.textContent = note.description || ""
+          // 只有当 description 不为空时才设置内容，否则保持空状态以显示占位符
+          if (note.description && note.description.trim()) {
+            editableDiv.textContent = note.description
+          } else {
+            editableDiv.textContent = ""
+          }
         }
       }, 100)
     }
-  }, [open, resetForm, note.description])
+  }, [open, resetForm]) // 移除对 note.description 的监听，避免光标重置
 
   // 当笔记变化时重置表单
   useEffect(() => {
     if (open) {
       resetForm()
+      // 当笔记ID变化时，重新初始化 contentEditable 内容
+      setTimeout(() => {
+        const editableDiv = document.querySelector('[contenteditable="true"][data-placeholder=" Edit description (optional)"]') as HTMLDivElement
+        if (editableDiv) {
+          if (note.description && note.description.trim()) {
+            editableDiv.textContent = note.description
+          } else {
+            editableDiv.textContent = ""
+          }
+        }
+      }, 150) // 稍微延迟一点，确保 resetForm 完成
     }
   }, [note.id, open, resetForm])
 
@@ -250,7 +266,7 @@ export default function EditNoteDialog({
                         type="url"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
-                          placeholder="Paste a link"
+                          placeholder=" Paste a link"
                           className="w-full text-[15px] bg-transparent text-sand-12 placeholder-sand-9 focus:outline-none"
                         required
                       />
@@ -305,7 +321,7 @@ export default function EditNoteDialog({
                         <textarea
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                          placeholder="Write your note here..."
+                          placeholder=" Write your note here..."
                           className="w-full min-h-[120px] text-[15px] bg-transparent text-sand-12 placeholder-sand-9 focus:outline-none resize-none"
                         required
                       />
@@ -328,7 +344,7 @@ export default function EditNoteDialog({
                           setDescription(target.textContent || '')
                         }}
                         suppressContentEditableWarning={true}
-                        data-placeholder="Edit description (optional)"
+                        data-placeholder=" Edit description (optional)"
                   />
                 </div>
                 </div>
@@ -342,7 +358,7 @@ export default function EditNoteDialog({
                       type="text"
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
-                      placeholder="Edit tags (separated by spaces)"
+                      placeholder=" Edit tags (separated by spaces)"
                       className="w-full text-[13px] bg-transparent text-gray-600 placeholder-gray-400 focus:outline-none"
                       autoFocus={false}
                       tabIndex={-1}

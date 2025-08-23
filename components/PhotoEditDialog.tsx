@@ -179,7 +179,7 @@ export default function PhotoEditDialog({
                               setContent(target.textContent || '')
                             }}
                             suppressContentEditableWarning={true}
-                            data-placeholder="Edit note for this image"
+                            data-placeholder=" Edit note for this image"
                           />
                         </div>
                       </div>
@@ -193,7 +193,7 @@ export default function PhotoEditDialog({
                           type="text"
                           value={tags}
                           onChange={(e) => setTags(e.target.value)}
-                          placeholder="Edit tags (separated by spaces)"
+                          placeholder=" Edit tags (separated by spaces)"
                           className="w-full text-[13px] bg-transparent text-gray-600 placeholder-gray-400 focus:outline-none"
                           autoFocus={false}
                           tabIndex={-1}
