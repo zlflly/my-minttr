@@ -5,7 +5,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'zlflly-notes',
-  description: 'Taste-first 、 anti-knowledge management notes',
+  description: 'Taste-first、anti-knowledge management notes',
   generator: 'zlflly',
   icons: {
     icon: '/favicon.png',
