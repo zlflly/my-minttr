@@ -64,8 +64,13 @@ export default function CreateNoteDialog({
     setContent("")
     setTags("")
     setMetadata(null)
-    setActiveTab(initialTab)
+    setActiveTab(initialTab) // 重置为初始标签页
   }
+
+  // 当initialTab变化时更新activeTab
+  useEffect(() => {
+    setActiveTab(initialTab)
+  }, [initialTab])
 
   // 平滑切换标签 - 使用对称快速模糊过渡
   const handleTabChange = (value: string) => {

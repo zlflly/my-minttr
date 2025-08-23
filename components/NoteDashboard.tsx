@@ -104,17 +104,30 @@ export default function NoteDashboard() {
 
   // 处理新笔记创建
   const handleNoteCreated = (newNote: Note) => {
-    // 验证新笔记是否有效
-    if (!newNote || !newNote.id) {
-      console.error('Invalid note object:', newNote)
-      return
+    try {
+      // 验证新笔记是否有效
+      if (!newNote || !newNote.id || typeof newNote.id !== 'string') {
+        console.error('Invalid note object:', newNote)
+        return
+      }
+      
+      setNotes((prev) => {
+        // 确保新笔记添加到数组顶部，并且不重复
+        const existingIndex = prev.findIndex(note => note?.id === newNote.id)
+        if (existingIndex >= 0) {
+          // 如果笔记已存在，更新它
+          const updated = [...prev]
+          updated[existingIndex] = newNote
+          return updated
+        } else {
+          // 如果是新笔记，添加到顶部
+          return [newNote, ...prev]
+        }
+      })
+      setTotalNotes((prev) => prev + 1)
+    } catch (error) {
+      console.error('Error handling note creation:', error)
     }
-    
-    setNotes((prev) => {
-      // 确保新笔记添加到数组顶部
-      return [newNote, ...prev]
-    })
-    setTotalNotes((prev) => prev + 1)
   }
 
   // 处理删除笔记
@@ -134,9 +147,19 @@ export default function NoteDashboard() {
 
   // 处理笔记更新
   const handleNoteUpdate = (updatedNote: Note) => {
-    setNotes((prev) => prev.map(note => 
-      note.id === updatedNote.id ? updatedNote : note
-    ))
+    try {
+      if (!updatedNote || !updatedNote.id || typeof updatedNote.id !== 'string') {
+        console.error('Invalid updated note object:', updatedNote)
+        return
+      }
+      
+      setNotes((prev) => prev.map(note => {
+        if (!note || !note.id) return note
+        return note.id === updatedNote.id ? updatedNote : note
+      }))
+    } catch (error) {
+      console.error('Error handling note update:', error)
+    }
   }
 
   return (
@@ -176,16 +199,37 @@ export default function NoteDashboard() {
           {/* Masonry layout */}
           <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
             {notes
-              .filter((note): note is Note => Boolean(note && note.id && typeof note.id === 'string'))
-              .map((note) => (
-                <div key={`note-${note.id}`} className="break-inside-avoid">
-                  <NoteCard 
-                    note={note} 
-                    onDelete={handleNoteDelete}
-                    onNoteUpdate={handleNoteUpdate}
-                  />
-                </div>
-              ))
+              .filter((note): note is Note => {
+                try {
+                  return Boolean(
+                    note && 
+                    typeof note === 'object' && 
+                    note.id && 
+                    typeof note.id === 'string' &&
+                    note.id.length > 0
+                  )
+                } catch (error) {
+                  console.warn('Invalid note object:', note, error)
+                  return false
+                }
+              })
+              .map((note) => {
+                try {
+                  return (
+                    <div key={`note-${note.id}`} className="break-inside-avoid">
+                      <NoteCard 
+                        note={note} 
+                        onDelete={handleNoteDelete}
+                        onNoteUpdate={handleNoteUpdate}
+                      />
+                    </div>
+                  )
+                } catch (error) {
+                  console.error('Error rendering note:', note.id, error)
+                  return null
+                }
+              })
+              .filter(Boolean)
             }
           </div>
           

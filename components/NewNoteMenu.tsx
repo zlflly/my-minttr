@@ -19,10 +19,10 @@ const menuVariants = {
     scale: 1, 
     y: 0,
     transition: { 
-      duration: 0.3, 
-      ease: [0.4, 0, 0.2, 1],
-      staggerChildren: 0.06,
-      delayChildren: 0.1
+      duration: 0.2, 
+      ease: "easeOut" as const,
+      staggerChildren: 0.04,
+      delayChildren: 0.05
     } 
   },
   exit: { 
@@ -30,8 +30,8 @@ const menuVariants = {
     scale: 0.95, 
     y: 10,
     transition: { 
-      duration: 0.2, 
-      ease: [0.4, 0, 0.2, 1] 
+      duration: 0.15, 
+      ease: "easeIn" as const
     } 
   },
 };
@@ -43,9 +43,8 @@ const buttonVariants = {
     scale: 1, 
     y: 0,
     transition: { 
-      duration: 0.3, 
-      ease: [0.4, 0, 0.2, 1],
-      delay: 0.1
+      duration: 0.15, 
+      ease: "easeOut" as const
     } 
   },
   exit: { 
@@ -53,15 +52,22 @@ const buttonVariants = {
     scale: 0.95, 
     y: 10,
     transition: { 
-      duration: 0.2, 
-      ease: [0.4, 0, 0.2, 1] 
+      duration: 0.15, 
+      ease: "easeIn" as const
     } 
   },
 };
 
 const itemVariants = {
   initial: { opacity: 0, y: -10 },
-  animate: { opacity: 1, y: 0 },
+  animate: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut" as const
+    }
+  },
 };
 
 const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
@@ -157,8 +163,10 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
   ];
 
   const commonStyles = {
-    backgroundColor: "rgb(241,240,239)",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
+    backdropFilter: "blur(20px) saturate(180%)",
+    boxShadow: "0 12px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.2), inset 0 1px 0 rgba(255,255,255,0.3)",
+    border: "1px solid rgba(255,255,255,0.25)",
   };
 
   return (
@@ -174,28 +182,31 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
             // --- EXPANDED MENU COMPONENT ---
             <motion.div
               key="menu"
-              className="w-[374px] rounded-3xl border-[0.5px] border-white/45 backdrop-blur-xl overflow-hidden pointer-events-auto"
-              style={commonStyles}
+              className="w-[374px] rounded-3xl overflow-hidden pointer-events-auto mx-2"
+              style={{
+                ...commonStyles,
+                background: "linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75))",
+              }}
               variants={menuVariants}
               initial="initial"
               animate="animate"
               exit="exit"
             >
-              <motion.div variants={{ animate: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } } }}>
+              <motion.div variants={{ animate: { transition: { staggerChildren: 0.04, delayChildren: 0.05 } } }}>
                 <div className="relative z-10 py-2 px-4">
-                  <motion.div className="text-sand-12 text-xs font-medium px-3 mb-1.5" variants={itemVariants}>NEW</motion.div>
+                  <motion.div className="text-gray-800 text-xs font-medium px-3 mb-1.5" variants={itemVariants}>NEW</motion.div>
                   {menuItems.map((item) => (
                     <motion.button
                       key={item.id}
                       onClick={() => openDialog(item.type)}
-                      className="w-full text-[15px] font-medium text-sand-12 hover:bg-sand-a4 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect"
+                      className="w-full text-[15px] font-semibold text-gray-800 hover:bg-gray-200/60 active:bg-gray-300/50 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect"
                       variants={itemVariants}
                     >
                       <div className="flex items-center gap-2">
                         <item.icon className="w-[1em] h-[1em] text-current" />
                         {item.label}
                       </div>
-                      <kbd className="inline-flex items-center justify-center flex-shrink-0 font-mono font-normal text-xs min-w-[1.75em] h-fit px-2 py-0.5 rounded bg-sand-a2 text-sand-12">
+                      <kbd className="inline-flex items-center justify-center flex-shrink-0 font-mono font-normal text-xs min-w-[1.75em] h-fit px-2 py-0.5 rounded bg-white/50 text-gray-700 backdrop-blur-sm">
                         {item.hotkey}
                       </kbd>
                     </motion.button>
@@ -203,11 +214,11 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
                   <motion.div className="h-[0.5px] bg-gray-200/40 mx-3 my-1" variants={itemVariants} />
                 </div>
                 <button
-                  className="w-full flex items-center justify-center gap-2 text-[15px] font-medium text-sand-12 rounded-full select-none transition-all duration-200 active:scale-95 py-1.5 hover:bg-sand-a4"
+                  className="w-full flex items-center justify-center gap-2 text-[15px] font-semibold text-gray-800 rounded-full select-none transition-all duration-200 active:scale-95 py-1.5"
                   onClick={handleMainButtonClick}
                 >
                   <motion.div animate={{ rotate: 45 }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}>
-                    <PlusIcon className="w-5 h-5 text-sand-12" />
+                    <PlusIcon className="w-5 h-5 text-gray-800" />
                   </motion.div>
                   <span>New</span>
                 </button>
@@ -227,11 +238,14 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
             >
               <button
                 onClick={handleMainButtonClick}
-                className="w-[92px] flex items-center justify-center gap-2 text-[15px] font-medium text-sand-12 rounded-3xl select-none transition-all duration-200 px-4 py-2.5 border-[0.5px] border-white/45 backdrop-blur-xl"
-                style={commonStyles}
+                className="w-[92px] flex items-center justify-center gap-2 text-[15px] font-medium text-gray-800 rounded-3xl select-none transition-all duration-200 px-4 py-2.5"
+                style={{
+                  ...commonStyles,
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75))",
+                }}
               >
                 <motion.div animate={{ rotate: 0 }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}>
-                  <PlusIcon className="w-5 h-5 text-sand-12" />
+                  <PlusIcon className="w-5 h-5 text-gray-800" />
                 </motion.div>
                 <span>New</span>
               </button>
@@ -241,7 +255,12 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
       </div>
 
       <PhotoUploader open={photoUploaderOpen} onOpenChange={setPhotoUploaderOpen} onSubmit={handlePhotoSubmit} />
-      <CreateNoteDialog open={createNoteOpen} onOpenChange={setCreateNoteOpen} onNoteCreated={onNoteCreated} initialTab={noteType}>
+      <CreateNoteDialog 
+        open={createNoteOpen} 
+        onOpenChange={setCreateNoteOpen} 
+        onNoteCreated={onNoteCreated} 
+        initialTab={noteType}
+      >
         <div />
       </CreateNoteDialog>
     </>

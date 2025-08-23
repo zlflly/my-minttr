@@ -251,6 +251,8 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                           onChange={(e) => setTags(e.target.value)}
                           placeholder="Add tags (separated by spaces)"
                           className="w-full text-[13px] bg-transparent text-gray-600 placeholder-gray-400 focus:outline-none"
+                          autoFocus={false}
+                          tabIndex={-1}
                         />
                       </div>
                     </div>
