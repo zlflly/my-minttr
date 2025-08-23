@@ -154,7 +154,7 @@ export default function CreateNoteDialog({
           ref={ref}
           className={cn(
             // 强制覆盖默认的中央定位，确保始终在底部
-            "!fixed !left-[50%] !bottom-0 !top-auto !z-[60] !grid !w-full !max-w-[min(680px,95vw)] !translate-x-[-50%] !gap-4 !border-0 !p-4 sm:!p-6 !max-h-[90vh] sm:!max-h-[85vh] !overflow-y-auto",
+            "!fixed !left-[50%] !bottom-0 !top-auto !z-[60] !grid !w-full sm:!max-w-[min(680px,95vw)] !translate-x-[-50%] !gap-4 !border-0 !p-4 sm:!p-6 !max-h-[90vh] sm:!max-h-[85vh] !overflow-y-auto",
             // 初始状态：完全隐藏在底部外，添加缩放效果
             "!translate-y-full !scale-95 !opacity-0",
             // 动画状态 - 弹出动画和高度变化动画分别控制
@@ -319,7 +319,7 @@ export default function CreateNoteDialog({
                     <div className="relative group">
                       <Textarea
                         id="content"
-                        placeholder="开始写下你的想法... 支持 Markdown 格式、数学公式 ($\LaTeX$) 和代码高亮"
+                        placeholder="开始写下你的想法... 支持 Markdown 格式、数学公式 ($\\LaTeX$) 和代码高亮"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         className="min-h-[120px] sm:min-h-[140px] p-3 sm:p-4 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-green-300 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-200 resize-none leading-relaxed focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
@@ -388,14 +388,14 @@ export default function CreateNoteDialog({
                   />
                   {tags && (
                     <div className="flex flex-wrap gap-2 mt-3 max-w-full overflow-hidden">
-                      {tags.split(/[,，\s]+/).filter(tag => tag.trim()).slice(0, 10).map((tag, index) => (
+                      {tags.split(/[,，\\s]+/).filter(tag => tag.trim()).slice(0, 10).map((tag, index) => (
                         <div key={index} className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 text-xs sm:text-sm font-medium shadow-sm ring-1 ring-pink-200/50 max-w-[120px] sm:max-w-[160px]">
                           <span className="truncate">{tag.trim()}</span>
                         </div>
                       ))}
-                      {tags.split(/[,，\s]+/).filter(tag => tag.trim()).length > 10 && (
+                      {tags.split(/[,，\\s]+/).filter(tag => tag.trim()).length > 10 && (
                         <div className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-gray-100 text-gray-500 text-xs sm:text-sm font-medium">
-                          +{tags.split(/[,，\s]+/).filter(tag => tag.trim()).length - 10}
+                          +{tags.split(/[,，\\s]+/).filter(tag => tag.trim()).length - 10}
                         </div>
                       )}
                     </div>
@@ -409,14 +409,14 @@ export default function CreateNoteDialog({
                   variant="outline"
                   onClick={() => setOpen(false)}
                   disabled={isLoading}
-                  className="flex-1 sm:w-auto px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl border-2 border-gray-300 bg-white/80 hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200 font-medium text-sm sm:text-base order-2 sm:order-1"
+                  className="flex-1 sm:w-auto px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl border-2 border-gray-300 bg-white/80 hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200 font-medium text-sm sm:text-base order-1"
                 >
                   取消
                 </Button>
                 <Button
                   type="submit"
                   disabled={isLoading || (activeTab === "link" && !url) || (activeTab === "text" && !content)}
-                  className="flex-1 sm:w-auto min-w-[120px] px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 shadow-lg shadow-blue-200/50 border-0 transition-all duration-200 font-semibold text-sm sm:text-base order-1 sm:order-2"
+                  className="flex-1 sm:w-auto min-w-[120px] px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 shadow-lg shadow-blue-200/50 border-0 transition-all duration-200 font-semibold text-sm sm:text-base order-2"
                 >
                   {isLoading ? (
                     <>
