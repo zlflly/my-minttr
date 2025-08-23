@@ -11,6 +11,8 @@ interface LazyImageProps {
   placeholder?: React.ReactNode
   onLoad?: () => void
   onError?: () => void
+  onClick?: () => void
+  style?: React.CSSProperties
   referrerPolicy?: React.ImgHTMLAttributes<HTMLImageElement>['referrerPolicy']
   crossOrigin?: React.ImgHTMLAttributes<HTMLImageElement>['crossOrigin']
 }
@@ -23,6 +25,8 @@ export default function LazyImage({
   placeholder,
   onLoad,
   onError,
+  onClick,
+  style,
   referrerPolicy = 'no-referrer',
   crossOrigin = 'anonymous'
 }: LazyImageProps) {
@@ -84,20 +88,22 @@ export default function LazyImage({
           alt={alt}
           className={`transition-opacity duration-300 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
-          } ${className}`}
+          } ${className} ${onClick ? 'cursor-pointer' : ''}`}
           loading="lazy"
           decoding="async"
           referrerPolicy={referrerPolicy}
           crossOrigin={crossOrigin}
           onLoad={handleLoad}
           onError={handleError}
+          onClick={onClick}
           style={{
             position: isLoaded ? 'static' : 'absolute',
             top: isLoaded ? 'auto' : 0,
             left: isLoaded ? 'auto' : 0,
             width: '100%',
             height: '100%',
-            objectFit: 'cover'
+            objectFit: 'cover',
+            ...style
           }}
         />
       )}

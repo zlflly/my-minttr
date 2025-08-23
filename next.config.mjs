@@ -6,6 +6,8 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // 外部包配置
+  serverExternalPackages: [],
   images: {
     // 启用图片优化
     unoptimized: false,
@@ -24,10 +26,6 @@ const nextConfig = {
   },
   // 启用压缩
   compress: true,
-  // 优化字体加载
-  optimizeFonts: true,
-  // 启用SWC minify
-  swcMinify: true,
   // 实验性功能
   experimental: {
     // 优化包导入

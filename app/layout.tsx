@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'zlflly-notes',
   description: 'Taste-first anti-knowledge management notes',
   generator: 'zlflly-notes',
+  metadataBase: new URL(process.env.NODE_ENV === 'production' ? 'https://my-minttr.vercel.app' : 'http://localhost:3004'),
   icons: {
     icon: '/favicon.png',
     shortcut: '/favicon.png',
@@ -40,20 +41,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preload" href="/fonts/geist-sans.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/geist-mono.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <style>{`
-html {
-  font-family: ${GeistSans.style.fontFamily};
-  --font-sans: ${GeistSans.variable};
-  --font-mono: ${GeistMono.variable};
-  font-display: swap;
-}
-        `}</style>
-      </head>
-      <body>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className={GeistSans.className}>
         <ClientErrorBoundary>
           {children}
         </ClientErrorBoundary>
