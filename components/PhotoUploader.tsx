@@ -114,31 +114,30 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
             
             <Dialog.Content asChild>
               <motion.div
-                className="fixed top-1/2 left-1/2 z-50 w-full max-w-md"
+                className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-md mx-auto"
                 initial={{ 
                   opacity: 0, 
-                  scale: 0.95,
-                  x: '-50%',
-                  y: '-48%'
+                  y: '100%'
                 }}
                 animate={{ 
                   opacity: 1, 
-                  scale: 1,
-                  x: '-50%',
-                  y: '-50%'
+                  y: 0
                 }}
                 exit={{ 
                   opacity: 0, 
-                  scale: 0.95,
-                  x: '-50%',
-                  y: '-48%'
+                  y: '100%'
                 }}
                 transition={{ 
-                  duration: 0.2,
-                  ease: [0.16, 1, 0.3, 1]
+                  duration: 0.3,
+                  ease: [0.32, 0.72, 0, 1]
                 }}
               >
-                <div className="bg-sand-1 rounded-xl shadow-border flex-1 max-h-full overflow-hidden flex flex-col">
+                {/* DialogTitle for accessibility - hidden visually but available to screen readers */}
+                <Dialog.Title className="sr-only">
+                  上传图片
+                </Dialog.Title>
+                
+                <div className="bg-sand-1 rounded-t-xl shadow-border flex-1 max-h-[90vh] overflow-hidden flex flex-col mb-0">
                   <div className="flex flex-col gap-2 max-h-full overflow-hidden flex-1 justify-between">
                     <div className="flex flex-col flex-1 overflow-hidden shadow-border rounded-xl">
                       {/* Image upload area */}
