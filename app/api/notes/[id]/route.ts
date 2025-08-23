@@ -53,7 +53,7 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { title, content, url, description, domain, faviconUrl, imageUrl, tags, isArchived, isFavorite } = body
+    const { title, content, url, description, domain, faviconUrl, imageUrl, tags, isArchived, isFavorite, color, isHidden } = body
 
     const note = await prisma.note.update({
       where: { id },
@@ -68,6 +68,8 @@ export async function PUT(
         tags,
         isArchived,
         isFavorite,
+        color,
+        isHidden,
         updatedAt: new Date()
       }
     })
