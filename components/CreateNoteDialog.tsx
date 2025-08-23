@@ -367,20 +367,20 @@ export default function CreateNoteDialog({
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4 border-t border-gray-200 pb-2 sm:pb-0">
+              <div className="flex flex-row justify-end gap-3 sm:gap-4 pt-4 border-t border-gray-200 pb-2 sm:pb-0">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setOpen(false)}
                   disabled={isLoading}
-                  className="w-full sm:w-auto px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl border-2 border-gray-300 bg-white/80 hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200 font-medium text-sm sm:text-base order-2 sm:order-1"
+                  className="flex-1 sm:w-auto px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl border-2 border-gray-300 bg-white/80 hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200 font-medium text-sm sm:text-base order-2 sm:order-1"
                 >
                   取消
                 </Button>
                 <Button
                   type="submit"
                   disabled={isLoading || (activeTab === "link" && !url) || (activeTab === "text" && !content)}
-                  className="w-full sm:w-auto min-w-[120px] px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 shadow-lg shadow-blue-200/50 border-0 transition-all duration-200 font-semibold text-sm sm:text-base order-1 sm:order-2"
+                  className="flex-1 sm:w-auto min-w-[120px] px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 shadow-lg shadow-blue-200/50 border-0 transition-all duration-200 font-semibold text-sm sm:text-base order-1 sm:order-2"
                 >
                   {isLoading ? (
                     <>
