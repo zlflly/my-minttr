@@ -112,6 +112,49 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
       clearTimeout(timeoutRef.current)
       timeoutRef.current = null
     }
+    
+    // 添加触觉反馈
+    const triggerHapticFeedback = () => {
+      // 检测iOS设备
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+      
+      if (isIOS) {
+        // iOS设备：使用CSS变换 + 音频上下文组合方案
+        try {
+          // 方案1：尝试使用音频上下文触发iOS触觉引擎
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+          if (audioContext.state === 'suspended') {
+            audioContext.resume()
+          }
+          
+          // 创建极短的静音点击音来触发系统触觉反馈
+          const buffer = audioContext.createBuffer(1, 1, 22050)
+          const source = audioContext.createBufferSource()
+          source.buffer = buffer
+          source.connect(audioContext.destination)
+          source.start(0)
+        } catch (e) {
+          // iOS音频方案失败时，静默处理
+        }
+        
+        // 方案2：添加CSS触觉反馈动画
+        const button = document.activeElement
+        if (button && button.tagName === 'BUTTON') {
+          button.style.transform = 'scale(0.95)'
+          setTimeout(() => {
+            button.style.transform = 'scale(1)'
+          }, 100)
+        }
+      } else {
+        // Android设备：使用标准震动API
+        if ('vibrate' in navigator) {
+          navigator.vibrate(50)
+        }
+      }
+    }
+    
+    triggerHapticFeedback()
     setIsExpanded(!isExpanded)
   }
 
@@ -186,9 +229,10 @@ export default function FloatingNoteCreator({ onNoteCreated }: FloatingNoteCreat
           
           {/* 主按钮 */}
           <button
-            className={`w-full flex items-center justify-center gap-2 text-[15px] font-medium text-gray-800 rounded-full select-none transition-all duration-200 ${!isExpanded ? 'px-4 py-2.5 hover:bg-black/5' : 'py-1.5 hover:bg-black/5 cursor-pointer'}`}
+            className={`w-full flex items-center justify-center gap-2 text-[15px] font-medium text-gray-800 rounded-full select-none transition-all duration-200 active:scale-95 ${!isExpanded ? 'px-4 py-2.5 hover:bg-black/5' : 'py-1.5 hover:bg-black/5 cursor-pointer'}`}
             style={{
               backgroundColor: 'transparent',
+              transition: 'transform 0.1s ease-out, background-color 0.2s ease',
             }}
             onClick={handleMainButtonClick}
           >

@@ -3,25 +3,47 @@ import remarkMath from "remark-math"
 import remarkGfm from "remark-gfm"
 import rehypeKatex from "rehype-katex"
 import rehypeHighlight from "rehype-highlight"
-import { type Note } from "@/lib/api"
+import { type Note, updateNote } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, ExternalLink } from "lucide-react"
 import NoteContextMenu from "./ContextMenu"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { getProxiedImageUrl } from "@/lib/image-proxy"
 
 interface NoteCardProps {
   note: Note
   onDelete?: (noteId: string) => void
-  onHide?: (noteId: string) => void
+  onNoteUpdate?: (updatedNote: Note) => void
 }
 
-export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
-  const [isHidden, setIsHidden] = useState(false)
+export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
+  // 本地状态用于即时响应
+  const [localColor, setLocalColor] = useState(note.color)
+  const [localIsHidden, setLocalIsHidden] = useState(note.isHidden)
+  
+  // 同步本地状态与props状态
+  useEffect(() => {
+    setLocalColor(note.color)
+    setLocalIsHidden(note.isHidden)
+  }, [note.color, note.isHidden])
+  
+  // 获取卡片颜色样式
+  const getCardColorClass = (color?: string) => {
+    switch (color) {
+      case 'pink':
+        return 'bg-pink-50 border-pink-100'
+      case 'blue':
+        return 'bg-blue-50 border-blue-100'
+      case 'green':
+        return 'bg-green-50 border-green-100'
+      default:
+        return 'bg-white border-black/5'
+    }
+  }
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -38,9 +60,37 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
     return note.tags.split(',').filter(tag => tag.trim()).map(tag => tag.trim())
   }
 
-  const handleHide = () => {
-    setIsHidden(true)
-    onHide?.(note.id)
+  const handleHide = async () => {
+    // 立即更新本地状态实现即时响应
+    const newHiddenState = !localIsHidden
+    setLocalIsHidden(newHiddenState)
+    
+    try {
+      const result = await updateNote(note.id, { isHidden: newHiddenState })
+      if (result.success && result.data) {
+        onNoteUpdate?.(result.data)
+      }
+    } catch (error) {
+      console.error('Failed to update note visibility:', error)
+      // 如果后端更新失败，回滚本地状态
+      setLocalIsHidden(!newHiddenState)
+    }
+  }
+  
+  const handleColorChange = async (color: "default" | "pink" | "blue" | "green") => {
+    // 立即更新本地状态实现即时响应
+    setLocalColor(color)
+    
+    try {
+      const result = await updateNote(note.id, { color })
+      if (result.success && result.data) {
+        onNoteUpdate?.(result.data)
+      }
+    } catch (error) {
+      console.error('Failed to update note color:', error)
+      // 如果后端更新失败，回滚本地状态
+      setLocalColor(note.color)
+    }
   }
 
   const handleDelete = () => {
@@ -62,15 +112,11 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
     }, 200)
   }
 
-  // 如果笔记被隐藏，不渲染
-  if (isHidden) {
-    return null
-  }
 
   if (note.type === "LINK") {
     return (
-      <NoteContextMenu onHide={handleHide} onDelete={handleDelete}>
-        <div className="relative bg-white rounded-xl border border-black/5 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden mb-4 group cursor-pointer">
+      <NoteContextMenu note={{...note, color: localColor, isHidden: localIsHidden}} onHide={handleHide} onDelete={handleDelete} onColorChange={handleColorChange}>
+        <div className={`relative ${getCardColorClass(localColor)} rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden mb-4 group cursor-pointer ${localIsHidden ? 'blur-sm opacity-70' : ''}`}>
           {note.imageUrl && (
             <div className="aspect-video w-full overflow-hidden">
               <img 
@@ -240,8 +286,8 @@ export default function NoteCard({ note, onDelete, onHide }: NoteCardProps) {
   }
 
   return (
-    <NoteContextMenu onHide={handleHide} onDelete={handleDelete}>
-      <div className="relative bg-white rounded-xl border border-black/5 shadow-sm hover:shadow-md transition-shadow duration-200 p-4 mb-4 cursor-pointer">
+    <NoteContextMenu note={{...note, color: localColor, isHidden: localIsHidden}} onHide={handleHide} onDelete={handleDelete} onColorChange={handleColorChange}>
+      <div className={`relative ${getCardColorClass(localColor)} rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-4 mb-4 cursor-pointer ${localIsHidden ? 'blur-sm opacity-70' : ''}`}>
         {note.title && (
           <h3 className="font-semibold text-[#1C1917] text-lg mb-3">
             {note.title}

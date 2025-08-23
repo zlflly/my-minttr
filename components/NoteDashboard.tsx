@@ -56,9 +56,11 @@ export default function NoteDashboard() {
     }
   }
 
-  // 处理隐藏笔记（仅从当前视图中移除）
-  const handleNoteHide = (noteId: string) => {
-    setNotes((prev) => prev.filter(note => note.id !== noteId))
+  // 处理笔记更新
+  const handleNoteUpdate = (updatedNote: Note) => {
+    setNotes((prev) => prev.map(note => 
+      note.id === updatedNote.id ? updatedNote : note
+    ))
   }
 
   return (
@@ -101,7 +103,7 @@ export default function NoteDashboard() {
               <NoteCard 
                 note={note} 
                 onDelete={handleNoteDelete}
-                onHide={handleNoteHide}
+                onNoteUpdate={handleNoteUpdate}
               />
             </div>
           ))}

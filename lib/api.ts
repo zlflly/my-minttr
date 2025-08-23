@@ -11,6 +11,8 @@ export interface Note {
   faviconUrl?: string;
   imageUrl?: string;
   tags: string;
+  color?: "default" | "pink" | "blue" | "green";
+  isHidden?: boolean;
   isArchived: boolean;
   isFavorite: boolean;
   createdAt: string;

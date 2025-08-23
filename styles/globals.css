@@ -119,5 +119,14 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* 禁用手机端长按选中文字 */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    /* 禁用iOS Safari的点按高亮 */
+    -webkit-tap-highlight-color: transparent;
+    /* 禁用Android Chrome的长按菜单 */
+    -webkit-touch-callout: none;
   }
 }
