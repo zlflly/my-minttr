@@ -162,13 +162,16 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
     return (
       <PhotoCard 
         photoNote={photoNote}
+        note={note}
         onEdit={(photoNote) => {
-          // 可以在这里实现图片笔记的编辑功能
-          console.log('Edit photo note:', photoNote);
+          setShowEditDialog(true);
         }}
         onDelete={(id) => {
           onDelete?.(id);
         }}
+        onHide={handleHide}
+        onColorChange={handleColorChange}
+        onNoteUpdated={handleNoteUpdated}
       />
     );
   }

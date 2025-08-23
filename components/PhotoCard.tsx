@@ -1,13 +1,33 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { PhotoNote } from '../lib/photo-types';
+import NoteContextMenu from './ContextMenu';
+import PhotoEditDialog from './PhotoEditDialog';
+import { Button } from '@/components/ui/button';
+import type { Note } from '@/lib/api';
 
 interface PhotoCardProps {
   photoNote: PhotoNote;
+  note: Note; // 添加完整的Note对象用于右键菜单
   onEdit?: (photoNote: PhotoNote) => void;
   onDelete?: (id: string) => void;
+  onHide?: () => void;
+  onColorChange?: (color: "default" | "pink" | "blue" | "green") => void;
+  onNoteUpdated?: (updatedNote: Note) => void; // 添加笔记更新回调
 }
 
-const PhotoCard: React.FC<PhotoCardProps> = ({ photoNote, onEdit, onDelete }) => {
+const PhotoCard: React.FC<PhotoCardProps> = ({ 
+  photoNote, 
+  note, 
+  onEdit, 
+  onDelete, 
+  onHide, 
+  onColorChange, 
+  onNoteUpdated 
+}) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false) // 添加编辑对话框状态
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('zh-CN', {
       year: 'numeric',
@@ -18,8 +38,45 @@ const PhotoCard: React.FC<PhotoCardProps> = ({ photoNote, onEdit, onDelete }) =>
     }).format(date);
   };
 
+  const handleEdit = useCallback(() => {
+    setShowEditDialog(true);
+  }, []);
+
+  const handleHide = useCallback(() => {
+    onHide?.();
+  }, [onHide]);
+
+  const handleColorChange = useCallback((color: "default" | "pink" | "blue" | "green") => {
+    onColorChange?.(color);
+  }, [onColorChange]);
+
+  const handleDelete = useCallback(() => {
+    setShowDeleteConfirm(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    setIsDeleting(true);
+    onDelete?.(photoNote.id);
+  }, [photoNote.id, onDelete]);
+
+  const handleCancelDelete = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowDeleteConfirm(false);
+      setIsClosing(false);
+    }, 200);
+  }, []);
+
   return (
-    <div className="rounded-xl shadow-border bg-sand-1 relative flex flex-col overflow-hidden group hover:shadow-lg transition-shadow duration-200">
+    <>
+    <NoteContextMenu 
+      note={note} 
+      onHide={handleHide} 
+      onEdit={handleEdit} 
+      onDelete={handleDelete} 
+      onColorChange={handleColorChange}
+    >
+      <div className={`rounded-xl shadow-border bg-sand-1 relative flex flex-col overflow-hidden group hover:shadow-lg transition-shadow duration-200 ${note.isHidden ? 'blur-sm opacity-70' : ''}`}>
       {/* Green indicator */}
       <div className="w-[1.5px] h-4 bg-green-9 absolute top-[19px] -left-[0.7px]"></div>
       
@@ -39,45 +96,11 @@ const PhotoCard: React.FC<PhotoCardProps> = ({ photoNote, onEdit, onDelete }) =>
           alt={photoNote.imageAlt || "image"} 
           className="relative w-full h-full object-contain mx-auto rounded-lg cursor-pointer hover:scale-105 transition-transform duration-200" 
           src={photoNote.imageUrl}
-          onClick={() => onEdit?.(photoNote)}
+          onClick={() => setShowEditDialog(true)}
         />
         
         {/* Border overlay */}
         <div className="absolute inset-0 box-border border-[0.5px] border-black/5 mix-blend-luminosity rounded-lg pointer-events-none"></div>
-        
-        {/* Action buttons (visible on hover) */}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1">
-          {onEdit && (
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(photoNote);
-              }}
-              className="bg-sand-1/80 hover:bg-sand-1 backdrop-blur-sm rounded-full p-1.5 shadow-border text-sand-11 hover:text-sand-12 transition"
-              title="Edit"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </button>
-          )}
-          {onDelete && (
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                if (confirm('确定要删除这张图片笔记吗？')) {
-                  onDelete(photoNote.id);
-                }
-              }}
-              className="bg-sand-1/80 hover:bg-red-50 backdrop-blur-sm rounded-full p-1.5 shadow-border text-sand-11 hover:text-red-600 transition"
-              title="Delete"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          )}
-        </div>
       </div>
       
       {/* Divider */}
@@ -107,7 +130,121 @@ const PhotoCard: React.FC<PhotoCardProps> = ({ photoNote, onEdit, onDelete }) =>
           </div>
         </div>
       </div>
+      
+      {/* 删除确认覆盖层 */}
+      {showDeleteConfirm && (
+        <div 
+          className={`absolute inset-0 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-10 transition-all duration-200 ${
+            isClosing 
+              ? 'animate-out fade-out-0 zoom-out-95' 
+              : 'animate-in fade-in-0 zoom-in-95'
+          } ${
+            isDeleting 
+              ? 'bg-[rgb(246,244,240)]/80' 
+              : 'bg-white/80'
+          }`}
+        >
+          {isDeleting ? (
+            // 删除中状态：显示加载环
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            // 确认状态：显示确认对话框
+            <div 
+              className={`flex flex-col items-center gap-3 p-4 transition-opacity duration-150 ${
+                isClosing ? 'opacity-0' : 'opacity-100'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 256 256" 
+                  className="w-5 h-5 text-red-500"
+                >
+                  <rect width="256" height="256" fill="none"></rect>
+                  <line 
+                    x1="216" y1="56" x2="40" y2="56" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="16"
+                  ></line>
+                  <line 
+                    x1="104" y1="104" x2="104" y2="168" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="16"
+                  ></line>
+                  <line 
+                    x1="152" y1="104" x2="152" y2="168" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="16"
+                  ></line>
+                  <path 
+                    d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="16"
+                  ></path>
+                  <path 
+                    d="M168,56V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V56" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="16"
+                  ></path>
+                </svg>
+                <span className="text-sm font-medium text-gray-900">
+                  Delete this card?
+                </span>
+              </div>
+              
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelDelete}
+                  className="min-w-[70px] h-8 text-xs"
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleConfirmDelete}
+                  className="min-w-[90px] h-8 text-xs bg-red-500 hover:bg-red-600 text-white"
+                  disabled={isDeleting}
+                >
+                  Confirm delete
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
+  </NoteContextMenu>
+    
+  {/* 图片笔记编辑对话框 */}
+  <PhotoEditDialog
+    note={note}
+    photoNote={photoNote}
+    onNoteUpdated={onNoteUpdated}
+    open={showEditDialog}
+    onOpenChange={setShowEditDialog}
+  />
+</>
   );
 };
 
