@@ -28,3 +28,4 @@ next-env.d.ts
 /lib/generated/prisma
 .specstory/
 
+docs/右键菜单问题修复总结.md

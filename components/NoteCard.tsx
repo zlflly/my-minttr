@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, ExternalLink } from "lucide-react"
 import NoteContextMenu from "./ContextMenu"
-import { useState, useEffect } from "react"
+import EditNoteDialog from "./EditNoteDialog"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { getProxiedImageUrl } from "@/lib/image-proxy"
 
 interface NoteCardProps {
@@ -19,11 +20,19 @@ interface NoteCardProps {
 
 export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   // 本地状态用于即时响应
   const [localColor, setLocalColor] = useState(note.color)
   const [localIsHidden, setLocalIsHidden] = useState(note.isHidden)
+  
+  // 使用 useMemo 缓存 note 对象，避免不必要的重新渲染
+  const memoizedNote = useMemo(() => ({
+    ...note,
+    color: localColor,
+    isHidden: localIsHidden
+  }), [note, localColor, localIsHidden])
   
   // 同步本地状态与props状态
   useEffect(() => {
@@ -72,7 +81,12 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
     return note.tags.split(',').filter(tag => tag.trim()).map(tag => tag.trim())
   }
 
-  const handleHide = async () => {
+  // 使用 useCallback 缓存事件处理函数
+  const handleEdit = useCallback(() => {
+    setShowEditDialog(true)
+  }, [])
+
+  const handleHide = useCallback(async () => {
     // 立即更新本地状态实现即时响应
     const newHiddenState = !localIsHidden
     setLocalIsHidden(newHiddenState)
@@ -87,9 +101,9 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
       // 如果后端更新失败，回滚本地状态
       setLocalIsHidden(!newHiddenState)
     }
-  }
+  }, [localIsHidden, note.id, onNoteUpdate])
   
-  const handleColorChange = async (color: "default" | "pink" | "blue" | "green") => {
+  const handleColorChange = useCallback(async (color: "default" | "pink" | "blue" | "green") => {
     // 立即更新本地状态实现即时响应
     setLocalColor(color)
     
@@ -103,31 +117,40 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
       // 如果后端更新失败，回滚本地状态
       setLocalColor(note.color)
     }
-  }
+  }, [localColor, note.color, note.id, onNoteUpdate])
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     setShowDeleteConfirm(true)
-  }
+  }, [])
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = useCallback(() => {
     setIsDeleting(true)
     // 立即调用删除函数，保持加载状态直到组件被销毁
     onDelete?.(note.id)
-  }
+  }, [note.id, onDelete])
 
-  const handleCancelDelete = () => {
+  const handleCancelDelete = useCallback(() => {
     setIsClosing(true)
     // 等待渐隐动画完成后关闭
     setTimeout(() => {
       setShowDeleteConfirm(false)
       setIsClosing(false)
     }, 200)
-  }
+  }, [])
+
+  const handleNoteUpdated = useCallback((updatedNote: Note) => {
+    // 更新本地状态
+    setLocalColor(updatedNote.color)
+    setLocalIsHidden(updatedNote.isHidden)
+    // 通知父组件
+    onNoteUpdate?.(updatedNote)
+  }, [onNoteUpdate])
 
 
   if (note.type === "LINK") {
     return (
-      <NoteContextMenu note={{...note, color: localColor, isHidden: localIsHidden}} onHide={handleHide} onDelete={handleDelete} onColorChange={handleColorChange}>
+      <>
+        <NoteContextMenu note={memoizedNote} onHide={handleHide} onEdit={handleEdit} onDelete={handleDelete} onColorChange={handleColorChange}>
         <div 
           className={`relative rounded-xl border shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden mb-4 group cursor-pointer ${localIsHidden ? 'blur-sm opacity-70' : ''}`}
           style={getCardColorStyle(localColor)}
@@ -297,11 +320,21 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
           )}
         </div>
       </NoteContextMenu>
+      
+      {/* 编辑对话框 */}
+      <EditNoteDialog
+        note={note}
+        onNoteUpdated={handleNoteUpdated}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+      />
+    </>
     )
   }
 
   return (
-    <NoteContextMenu note={{...note, color: localColor, isHidden: localIsHidden}} onHide={handleHide} onDelete={handleDelete} onColorChange={handleColorChange}>
+    <>
+      <NoteContextMenu note={memoizedNote} onHide={handleHide} onEdit={handleEdit} onDelete={handleDelete} onColorChange={handleColorChange}>
       <div 
         className={`relative rounded-xl border shadow-sm hover:shadow-md transition-shadow duration-200 p-4 mb-4 cursor-pointer ${localIsHidden ? 'blur-sm opacity-70' : ''}`}
         style={getCardColorStyle(localColor)}
@@ -497,5 +530,14 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
         )}
       </div>
     </NoteContextMenu>
+    
+    {/* 编辑对话框 */}
+    <EditNoteDialog
+      note={note}
+      onNoteUpdated={handleNoteUpdated}
+      open={showEditDialog}
+      onOpenChange={setShowEditDialog}
+    />
+  </>
   )
 }
