@@ -153,7 +153,7 @@ export default function CreateNoteDialog({
           ref={ref}
           className={cn(
             // 强制覆盖默认的中央定位，确保始终在底部
-            "!fixed !left-[50%] !bottom-0 !top-auto !z-[60] !grid !w-full !max-w-[680px] !translate-x-[-50%] !gap-4 !border-0 !p-6 !max-h-[85vh] !overflow-hidden",
+            "!fixed !left-[50%] !bottom-0 !top-auto !z-[60] !grid !w-full !max-w-[680px] !translate-x-[-50%] !gap-4 !border-0 !p-4 sm:!p-6 !max-h-[90vh] sm:!max-h-[85vh] !overflow-y-auto",
             // 初始状态：完全隐藏在底部外，添加缩放效果
             "!translate-y-full !scale-95 !opacity-0",
             // 动画状态 - 弹出动画和高度变化动画分别控制
@@ -181,10 +181,10 @@ export default function CreateNoteDialog({
             boxShadow: '0 -25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
           }}
         >
-          <div className="flex flex-col space-y-1.5 text-center mb-6">
-            <DialogTitle className="text-2xl font-bold leading-none tracking-tight flex items-center justify-center gap-3 text-gray-800">
+          <div className="flex flex-col space-y-1.5 text-center mb-4 sm:mb-6">
+            <DialogTitle className="text-xl sm:text-2xl font-bold leading-none tracking-tight flex items-center justify-center gap-3 text-gray-800">
               <div className="p-2 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 shadow-inner">
-                <FileText className="h-6 w-6 text-blue-600" />
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               </div>
               创建新笔记
             </DialogTitle>
@@ -192,23 +192,23 @@ export default function CreateNoteDialog({
           </div>
           
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <div className="relative mb-6">
-              <TabsList className="grid w-full grid-cols-2 h-14 p-2 bg-gray-100/80 rounded-2xl shadow-inner border border-gray-200/50 backdrop-blur-sm">
+            <div className="relative mb-4 sm:mb-6">
+              <TabsList className="grid w-full grid-cols-2 h-12 sm:h-14 p-2 bg-gray-100/80 rounded-2xl shadow-inner border border-gray-200/50 backdrop-blur-sm">
                 <TabsTrigger 
                   value="link" 
-                  className="flex items-center gap-3 h-10 rounded-xl font-medium transition-all duration-200 hover:scale-[0.98] active:scale-95 data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-200/30 data-[state=active]:text-blue-700 data-[state=active]:border data-[state=active]:border-blue-200/50"
+                  className="flex items-center gap-2 sm:gap-3 h-8 sm:h-10 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 hover:scale-[0.98] active:scale-95 data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-200/30 data-[state=active]:text-blue-700 data-[state=active]:border data-[state=active]:border-blue-200/50"
                 >
-                  <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 data-[state=active]:from-blue-100 data-[state=active]:to-blue-200">
-                    <Link className="h-4 w-4 text-blue-600" />
+                  <div className="p-1 sm:p-1.5 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 data-[state=active]:from-blue-100 data-[state=active]:to-blue-200">
+                    <Link className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                   </div>
                   链接笔记
                 </TabsTrigger>
                 <TabsTrigger 
                   value="text" 
-                  className="flex items-center gap-3 h-10 rounded-xl font-medium transition-all duration-200 hover:scale-[0.98] active:scale-95 data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-green-200/30 data-[state=active]:text-green-700 data-[state=active]:border data-[state=active]:border-green-200/50"
+                  className="flex items-center gap-2 sm:gap-3 h-8 sm:h-10 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 hover:scale-[0.98] active:scale-95 data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-green-200/30 data-[state=active]:text-green-700 data-[state=active]:border data-[state=active]:border-green-200/50"
                 >
-                  <div className="p-1.5 rounded-lg bg-gradient-to-br from-green-50 to-green-100 data-[state=active]:from-green-100 data-[state=active]:to-green-200">
-                    <FileText className="h-4 w-4 text-green-600" />
+                  <div className="p-1 sm:p-1.5 rounded-lg bg-gradient-to-br from-green-50 to-green-100 data-[state=active]:from-green-100 data-[state=active]:to-green-200">
+                    <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
                   </div>
                   文本笔记
                 </TabsTrigger>
@@ -216,7 +216,7 @@ export default function CreateNoteDialog({
             </div>
 
             <form onSubmit={handleSubmit} className={cn(
-              "space-y-6 overflow-hidden",
+              "space-y-4 sm:space-y-6 overflow-hidden",
               isTransitioning && activeTab === "text" && "form-to-text",
               isTransitioning && activeTab === "link" && "form-to-link"
             )}>
@@ -244,7 +244,7 @@ export default function CreateNoteDialog({
                         placeholder="https://example.com"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
-                        className="pl-14 pr-12 h-12 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-blue-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-200 w-full overflow-hidden text-ellipsis focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                        className="pl-14 pr-12 h-10 sm:h-12 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-blue-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-200 w-full overflow-hidden text-ellipsis focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
                         required
                       />
                       {isExtractingMetadata && (
@@ -301,7 +301,7 @@ export default function CreateNoteDialog({
                         placeholder="开始写下你的想法... 支持 Markdown 格式、数学公式 ($\LaTeX$) 和代码高亮"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                        className="min-h-[140px] p-4 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-green-300 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-200 resize-none leading-relaxed focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                        className="min-h-[120px] sm:min-h-[140px] p-3 sm:p-4 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-green-300 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-200 resize-none leading-relaxed focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
                         required
                       />
                       <div className="absolute top-3 right-3 opacity-20 group-focus-within:opacity-40 transition-opacity">
@@ -324,7 +324,7 @@ export default function CreateNoteDialog({
                     placeholder={activeTab === "link" ? "自定义标题，留空使用网页标题" : "为你的笔记添加标题"}
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="h-12 px-4 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-purple-300 focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                    className="h-10 sm:h-12 px-3 sm:px-4 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-purple-300 focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
                   />
                 </div>
 
@@ -338,7 +338,7 @@ export default function CreateNoteDialog({
                     placeholder={activeTab === "link" ? "自定义描述，留空使用网页描述" : "添加一些描述信息"}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="min-h-[80px] p-4 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-orange-300 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all duration-200 resize-none leading-relaxed focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                    className="min-h-[70px] sm:min-h-[80px] p-3 sm:p-4 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-orange-300 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all duration-200 resize-none leading-relaxed focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
                   />
                 </div>
 
@@ -353,7 +353,7 @@ export default function CreateNoteDialog({
                     placeholder="用逗号分隔多个标签，如：工作,学习,想法"
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
-                    className="h-12 px-4 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-pink-300 focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                    className="h-10 sm:h-12 px-3 sm:px-4 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-pink-300 focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
                   />
                   {tags && (
                     <div className="flex flex-wrap gap-2 mt-3">
@@ -367,20 +367,20 @@ export default function CreateNoteDialog({
                 </div>
               </div>
 
-              <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4 border-t border-gray-200 pb-2 sm:pb-0">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setOpen(false)}
                   disabled={isLoading}
-                  className="px-6 py-3 h-12 rounded-xl border-2 border-gray-300 bg-white/80 hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200 font-medium"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl border-2 border-gray-300 bg-white/80 hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200 font-medium text-sm sm:text-base order-2 sm:order-1"
                 >
                   取消
                 </Button>
                 <Button
                   type="submit"
                   disabled={isLoading || (activeTab === "link" && !url) || (activeTab === "text" && !content)}
-                  className="min-w-[120px] px-6 py-3 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 shadow-lg shadow-blue-200/50 border-0 transition-all duration-200 font-semibold"
+                  className="w-full sm:w-auto min-w-[120px] px-4 sm:px-6 py-3 h-10 sm:h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 shadow-lg shadow-blue-200/50 border-0 transition-all duration-200 font-semibold text-sm sm:text-base order-1 sm:order-2"
                 >
                   {isLoading ? (
                     <>
