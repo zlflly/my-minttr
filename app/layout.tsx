@@ -5,12 +5,31 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'zlflly-notes',
-  description: 'Taste-first、anti-knowledge management notes',
-  generator: 'zlflly',
+  description: 'Taste-first anti-knowledge management notes',
+  generator: 'zlflly-notes',
   icons: {
     icon: '/favicon.png',
     shortcut: '/favicon.png',
     apple: '/favicon.png',
+  },
+  openGraph: {
+    title: 'zlflly-notes',
+    description: 'Taste-first anti-knowledge management notes',
+    type: 'website',
+    images: [
+      {
+        url: '/favicon.png',
+        width: 512,
+        height: 512,
+        alt: 'zlflly-notes logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'zlflly-notes',
+    description: 'Taste-first anti-knowledge management notes',
+    images: ['/favicon.png'],
   },
 }
 
