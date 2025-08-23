@@ -17,7 +17,7 @@ export default function NoteContextMenu({ children, note, onHide, onDelete, onCo
   const [showColorMenu, setShowColorMenu] = useState(false)
   
   const colors = [
-    { id: "default" as const, name: "Default", style: { backgroundColor: "rgb(243 244 246)" } },
+    { id: "default" as const, name: "Default", style: { backgroundColor: "rgb(255 255 255)" } },
     { id: "pink" as const, name: "Pink", style: { backgroundColor: "rgb(253 218 230)" } },
     { id: "blue" as const, name: "Blue", style: { backgroundColor: "rgb(201 230 253)" } },
     { id: "green" as const, name: "Green", style: { backgroundColor: "rgb(210 244 215)" } },

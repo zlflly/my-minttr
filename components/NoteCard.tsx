@@ -51,7 +51,7 @@ export default function NoteCard({ note, onDelete, onNoteUpdate }: NoteCardProps
         }
       default:
         return { 
-          backgroundColor: 'rgb(243 244 246)', 
+          backgroundColor: 'rgb(255 255 255)', 
           borderColor: 'rgba(0, 0, 0, 0.05)' 
         }
     }
