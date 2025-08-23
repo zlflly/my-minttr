@@ -33,6 +33,7 @@ export default function CreateNoteDialog({
 }: CreateNoteDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"link" | "text">(initialTab)
+  const [isTransitioning, setIsTransitioning] = useState(false)
   const ref = React.useRef<HTMLDivElement>(null)
   
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
@@ -65,6 +66,23 @@ export default function CreateNoteDialog({
     setTags("")
     setMetadata(null)
     setActiveTab(initialTab)
+  }
+
+  // 平滑切换标签 - 使用对称快速模糊过渡
+  const handleTabChange = (newTab: "link" | "text") => {
+    if (newTab === activeTab || isTransitioning) return
+    
+    setIsTransitioning(true)
+    
+    // 模糊阶段 (80ms) - 在此期间切换内容
+    setTimeout(() => {
+      setActiveTab(newTab)
+    }, 40) // 在模糊的中间时刻切换内容
+    
+    // 清晰化完成后结束过渡 (80ms + 80ms = 160ms)
+    setTimeout(() => {
+      setIsTransitioning(false)
+    }, 160)
   }
 
   // 自动提取链接元数据
@@ -138,8 +156,11 @@ export default function CreateNoteDialog({
             "!fixed !left-[50%] !bottom-0 !top-auto !z-[60] !grid !w-full !max-w-[680px] !translate-x-[-50%] !gap-4 !border-0 !p-6 !max-h-[85vh] !overflow-hidden",
             // 初始状态：完全隐藏在底部外，添加缩放效果
             "!translate-y-full !scale-95 !opacity-0",
-            // 动画状态 - 使用弹性缓动函数增强弹出效果
-            "!transition-all !duration-500 !ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+            // 动画状态 - 弹出动画和高度变化动画分别控制
+            "data-[state=open]:!transition-all data-[state=open]:!duration-500 data-[state=open]:!ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+            "data-[state=closed]:!transition-all data-[state=closed]:!duration-300 data-[state=closed]:!ease-in",
+            // 内容高度变化的平滑动画 - 使用更长的时间和更平滑的缓动
+            "!transition-[height,max-height,transform] !duration-700 !ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
             // 打开时：弹出到正确位置，恢复大小，完全显示
             "data-[state=open]:!translate-y-0 data-[state=open]:!scale-100 data-[state=open]:!opacity-100",
             // 关闭时：滑回底部外，缩小，淡出
@@ -170,7 +191,7 @@ export default function CreateNoteDialog({
             <p className="text-sm text-gray-500 mt-2">捕获你的想法和发现</p>
           </div>
           
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "link" | "text")}>
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
             <div className="relative mb-6">
               <TabsList className="grid w-full grid-cols-2 h-14 p-2 bg-gray-100/80 rounded-2xl shadow-inner border border-gray-200/50 backdrop-blur-sm">
                 <TabsTrigger 
@@ -194,93 +215,102 @@ export default function CreateNoteDialog({
               </TabsList>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6 overflow-hidden">
-              <TabsContent value="link" className="space-y-6 overflow-hidden transition-all duration-300 ease-in-out data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-right-3 data-[state=active]:duration-200">
-                <div className="space-y-3">
-                  <Label htmlFor="url" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    链接地址
-                  </Label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-                      <div className="p-1.5 rounded-lg bg-blue-50 group-focus-within:bg-blue-100 transition-colors">
-                        <Globe className="h-4 w-4 text-blue-600" />
+            <form onSubmit={handleSubmit} className={cn(
+              "space-y-6 overflow-hidden",
+              isTransitioning && activeTab === "text" && "form-to-text",
+              isTransitioning && activeTab === "link" && "form-to-link"
+            )}>
+              {/* 主内容区域 - 根据标签动态切换 */}
+              <div className={cn(
+                "space-y-3",
+                isTransitioning && "content-blur-out",
+                !isTransitioning && "content-clear-in"
+              )}>
+                {activeTab === "link" ? (
+                  <>
+                    <Label htmlFor="url" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      链接地址
+                    </Label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                        <div className="p-1.5 rounded-lg bg-blue-50 group-focus-within:bg-blue-100 transition-colors">
+                          <Globe className="h-4 w-4 text-blue-600" />
+                        </div>
                       </div>
+                      <Input
+                        id="url"
+                        type="url"
+                        placeholder="https://example.com"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        className="pl-14 pr-12 h-12 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-blue-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-200 w-full overflow-hidden text-ellipsis focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                        required
+                      />
+                      {isExtractingMetadata && (
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                          <div className="p-1.5 rounded-lg bg-gray-50">
+                            <Loader2 className="h-4 w-4 animate-spin text-gray-600" />
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <Input
-                      id="url"
-                      type="url"
-                      placeholder="https://example.com"
-                      value={url}
-                      onChange={(e) => setUrl(e.target.value)}
-                      className="pl-14 pr-12 h-12 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-blue-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-200 w-full overflow-hidden text-ellipsis focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
-                      required
-                    />
-                    {isExtractingMetadata && (
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        <div className="p-1.5 rounded-lg bg-gray-50">
-                          <Loader2 className="h-4 w-4 animate-spin text-gray-600" />
+                    
+                    {metadata && (
+                      <div className="rounded-2xl border-2 border-dashed border-blue-200 bg-gradient-to-br from-blue-50/50 to-white/80 backdrop-blur-sm overflow-hidden shadow-inner">
+                        <div className="p-6">
+                          <div className="flex gap-4">
+                            {metadata.image && (
+                              <div className="flex-shrink-0">
+                                <div className="relative">
+                                  <img
+                                    src={getProxiedImageUrl(metadata.image) || metadata.image}
+                                    alt="预览"
+                                    className="w-20 h-20 object-cover rounded-xl shadow-sm ring-1 ring-black/5"
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl"></div>
+                                </div>
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0 overflow-hidden">
+                              <div className="flex items-center gap-2 mb-2">
+                                {metadata.favicon && (
+                                  <div className="p-1 rounded-md bg-white shadow-sm">
+                                    <img src={getProxiedImageUrl(metadata.favicon) || metadata.favicon} alt="" className="w-4 h-4 flex-shrink-0" />
+                                  </div>
+                                )}
+                                <span className="text-sm font-medium text-blue-600 truncate">{metadata.domain}</span>
+                              </div>
+                              <h4 className="font-semibold text-gray-800 truncate mb-1">{metadata.title}</h4>
+                              <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">{metadata.description}</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
-                  </div>
-                </div>
-
-                {metadata && (
-                  <div className="rounded-2xl border-2 border-dashed border-blue-200 bg-gradient-to-br from-blue-50/50 to-white/80 backdrop-blur-sm overflow-hidden shadow-inner">
-                    <div className="p-6">
-                      <div className="flex gap-4">
-                        {metadata.image && (
-                          <div className="flex-shrink-0">
-                            <div className="relative">
-                              <img
-                                src={getProxiedImageUrl(metadata.image) || metadata.image}
-                                alt="预览"
-                                className="w-20 h-20 object-cover rounded-xl shadow-sm ring-1 ring-black/5"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl"></div>
-                            </div>
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0 overflow-hidden">
-                          <div className="flex items-center gap-2 mb-2">
-                            {metadata.favicon && (
-                              <div className="p-1 rounded-md bg-white shadow-sm">
-                                <img src={getProxiedImageUrl(metadata.favicon) || metadata.favicon} alt="" className="w-4 h-4 flex-shrink-0" />
-                              </div>
-                            )}
-                            <span className="text-sm font-medium text-blue-600 truncate">{metadata.domain}</span>
-                          </div>
-                          <h4 className="font-semibold text-gray-800 truncate mb-1">{metadata.title}</h4>
-                          <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">{metadata.description}</p>
-                        </div>
+                  </>
+                ) : (
+                  <>
+                    <Label htmlFor="content" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      笔记内容
+                    </Label>
+                    <div className="relative group">
+                      <Textarea
+                        id="content"
+                        placeholder="开始写下你的想法... 支持 Markdown 格式、数学公式 ($\LaTeX$) 和代码高亮"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        className="min-h-[140px] p-4 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-green-300 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-200 resize-none leading-relaxed focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                        required
+                      />
+                      <div className="absolute top-3 right-3 opacity-20 group-focus-within:opacity-40 transition-opacity">
+                        <FileText className="h-5 w-5 text-green-600" />
                       </div>
                     </div>
-                  </div>
+                  </>
                 )}
-              </TabsContent>
-
-              <TabsContent value="text" className="space-y-6 transition-all duration-300 ease-in-out data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-3 data-[state=active]:duration-200">
-                <div className="space-y-3">
-                  <Label htmlFor="content" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    笔记内容
-                  </Label>
-                  <div className="relative group">
-                    <Textarea
-                      id="content"
-                      placeholder="开始写下你的想法... 支持 Markdown 格式、数学公式 ($\LaTeX$) 和代码高亮"
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      className="min-h-[140px] p-4 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-green-300 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-200 resize-none leading-relaxed focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
-                      required
-                    />
-                    <div className="absolute top-3 right-3 opacity-20 group-focus-within:opacity-40 transition-opacity">
-                      <FileText className="h-5 w-5 text-green-600" />
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
+              </div>
 
               {/* 通用字段 */}
               <div className="space-y-4 pt-3 border-t border-gray-200">

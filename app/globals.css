@@ -611,3 +611,68 @@ code:not(.hljs) {
 .dialog-slide-out {
   animation: dialogSlideOutToBottom 0.3s ease-in forwards;
 }
+
+/* Smooth content morphing with blur */
+@keyframes contentBlurOut {
+  0% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.2;
+    filter: blur(15px);
+    transform: scale(0.96);
+  }
+}
+
+@keyframes contentClearIn {
+  0% {
+    opacity: 0.2;
+    filter: blur(15px);
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+}
+
+@keyframes formHeightAdjust {
+  0% {
+    min-height: var(--from-height);
+  }
+  100% {
+    min-height: var(--to-height);
+  }
+}
+
+/* Content transition classes */
+.content-blur-out {
+  animation: contentBlurOut 0.08s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+.content-clear-in {
+  animation: contentClearIn 0.08s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+/* Dynamic height classes */
+.form-to-text {
+  --from-height: 300px;
+  --to-height: 380px;
+  animation: formHeightAdjust 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.form-to-link {
+  --from-height: 380px;
+  --to-height: 300px;
+  animation: formHeightAdjust 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Smooth container height adjustment */
+.height-transition {
+  transition: height 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              max-height 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
