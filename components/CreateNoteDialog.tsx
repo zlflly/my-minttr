@@ -130,127 +130,191 @@ export default function CreateNoteDialog({
         {children}
       </DialogTrigger>
       <DialogPortal>
-        <DialogOverlay className="bg-black/80 backdrop-blur-md fixed inset-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <DialogOverlay className="bg-black/80 backdrop-blur-md fixed inset-0 z-[55] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content
           ref={ref}
           className={cn(
-            "fixed left-[50%] bottom-0 z-50 grid w-full max-w-[600px] translate-x-[-50%] gap-4 border p-6 shadow-2xl rounded-t-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden duration-500 ease-out",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-            "data-[state=closed]:slide-out-to-bottom-56 data-[state=open]:slide-in-from-bottom-56",
-            "sm:max-w-[600px] sm:bottom-0 sm:rounded-t-3xl"
+            // 强制覆盖默认的中央定位，确保始终在底部
+            "!fixed !left-[50%] !bottom-0 !top-auto !z-[60] !grid !w-full !max-w-[680px] !translate-x-[-50%] !gap-4 !border-0 !p-6 !max-h-[85vh] !overflow-hidden",
+            // 初始状态：默认隐藏在底部外（使用!important确保优先级）
+            "!translate-y-full",
+            // 动画状态 - 添加平滑的过渡效果
+            "!transition-all !duration-300 !ease-out",
+            // 打开时完全贴合底部，关闭时移到底部外
+            "data-[state=open]:!translate-y-0 data-[state=closed]:!translate-y-full",
+            "data-[state=open]:!opacity-100 data-[state=closed]:!opacity-0",
+            // 拟物风格：圆角、阴影、渐变背景
+            "rounded-t-3xl shadow-2xl",
+            // 纸质质感背景
+            "bg-gradient-to-br from-white via-gray-50 to-gray-100",
+            // 边框效果
+            "ring-1 ring-gray-200/50 ring-inset",
+            // 光泽效果
+            "before:absolute before:inset-0 before:rounded-t-3xl before:bg-gradient-to-t before:from-transparent before:via-white/10 before:to-white/30 before:pointer-events-none",
+            "relative"
           )}
-          style={{ backgroundColor: 'rgb(241,240,239)' }}
+          style={{ 
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 -25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+          }}
         >
-          <div className="flex flex-col space-y-1.5 text-center sm:text-left mb-6">
-            <DialogTitle className="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+          <div className="flex flex-col space-y-1.5 text-center mb-6">
+            <DialogTitle className="text-2xl font-bold leading-none tracking-tight flex items-center justify-center gap-3 text-gray-800">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 shadow-inner">
+                <FileText className="h-6 w-6 text-blue-600" />
+              </div>
               创建新笔记
             </DialogTitle>
+            <p className="text-sm text-gray-500 mt-2">捕获你的想法和发现</p>
           </div>
           
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "link" | "text")}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="link" className="flex items-center gap-2">
-                <Link className="h-4 w-4" />
-                链接笔记
-              </TabsTrigger>
-              <TabsTrigger value="text" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                文本笔记
-              </TabsTrigger>
-            </TabsList>
+            <div className="relative mb-6">
+              <TabsList className="grid w-full grid-cols-2 h-14 p-2 bg-gray-100/80 rounded-2xl shadow-inner border border-gray-200/50 backdrop-blur-sm">
+                <TabsTrigger 
+                  value="link" 
+                  className="flex items-center gap-3 h-10 rounded-xl font-medium transition-all duration-200 hover:scale-[0.98] active:scale-95 data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-200/30 data-[state=active]:text-blue-700 data-[state=active]:border data-[state=active]:border-blue-200/50"
+                >
+                  <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 data-[state=active]:from-blue-100 data-[state=active]:to-blue-200">
+                    <Link className="h-4 w-4 text-blue-600" />
+                  </div>
+                  链接笔记
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="text" 
+                  className="flex items-center gap-3 h-10 rounded-xl font-medium transition-all duration-200 hover:scale-[0.98] active:scale-95 data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-green-200/30 data-[state=active]:text-green-700 data-[state=active]:border data-[state=active]:border-green-200/50"
+                >
+                  <div className="p-1.5 rounded-lg bg-gradient-to-br from-green-50 to-green-100 data-[state=active]:from-green-100 data-[state=active]:to-green-200">
+                    <FileText className="h-4 w-4 text-green-600" />
+                  </div>
+                  文本笔记
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-6 overflow-hidden">
-              <TabsContent value="link" className="space-y-4 overflow-hidden">
-                <div className="space-y-2">
-                  <Label htmlFor="url">链接地址</Label>
-                  <div className="relative">
-                    <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <TabsContent value="link" className="space-y-6 overflow-hidden transition-all duration-300 ease-in-out data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-right-3 data-[state=active]:duration-200">
+                <div className="space-y-3">
+                  <Label htmlFor="url" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    链接地址
+                  </Label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                      <div className="p-1.5 rounded-lg bg-blue-50 group-focus-within:bg-blue-100 transition-colors">
+                        <Globe className="h-4 w-4 text-blue-600" />
+                      </div>
+                    </div>
                     <Input
                       id="url"
                       type="url"
                       placeholder="https://example.com"
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
-                      className="pl-10 w-full overflow-hidden text-ellipsis"
+                      className="pl-14 pr-12 h-12 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-blue-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-200 w-full overflow-hidden text-ellipsis focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
                       required
                     />
                     {isExtractingMetadata && (
-                      <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-muted-foreground" />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                        <div className="p-1.5 rounded-lg bg-gray-50">
+                          <Loader2 className="h-4 w-4 animate-spin text-gray-600" />
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
 
                 {metadata && (
-                  <Card className="border-dashed overflow-hidden">
-                    <CardContent className="p-4">
+                  <div className="rounded-2xl border-2 border-dashed border-blue-200 bg-gradient-to-br from-blue-50/50 to-white/80 backdrop-blur-sm overflow-hidden shadow-inner">
+                    <div className="p-6">
                       <div className="flex gap-4">
                         {metadata.image && (
                           <div className="flex-shrink-0">
-                            <img
-                              src={getProxiedImageUrl(metadata.image) || metadata.image}
-                              alt="预览"
-                              className="w-16 h-16 object-cover rounded"
-                            />
+                            <div className="relative">
+                              <img
+                                src={getProxiedImageUrl(metadata.image) || metadata.image}
+                                alt="预览"
+                                className="w-20 h-20 object-cover rounded-xl shadow-sm ring-1 ring-black/5"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl"></div>
+                            </div>
                           </div>
                         )}
                         <div className="flex-1 min-w-0 overflow-hidden">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-2">
                             {metadata.favicon && (
-                              <img src={getProxiedImageUrl(metadata.favicon) || metadata.favicon} alt="" className="w-4 h-4 flex-shrink-0" />
+                              <div className="p-1 rounded-md bg-white shadow-sm">
+                                <img src={getProxiedImageUrl(metadata.favicon) || metadata.favicon} alt="" className="w-4 h-4 flex-shrink-0" />
+                              </div>
                             )}
-                            <span className="text-sm text-muted-foreground truncate">{metadata.domain}</span>
+                            <span className="text-sm font-medium text-blue-600 truncate">{metadata.domain}</span>
                           </div>
-                          <h4 className="font-medium truncate">{metadata.title}</h4>
-                          <p className="text-sm text-muted-foreground line-clamp-2 break-words">{metadata.description}</p>
+                          <h4 className="font-semibold text-gray-800 truncate mb-1">{metadata.title}</h4>
+                          <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">{metadata.description}</p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 )}
               </TabsContent>
 
-              <TabsContent value="text" className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="content">笔记内容</Label>
-                  <Textarea
-                    id="content"
-                    placeholder="开始写下你的想法... 支持 Markdown 格式、数学公式 ($\LaTeX$) 和代码高亮"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="min-h-[120px] resize-none"
-                    required
-                  />
+              <TabsContent value="text" className="space-y-6 transition-all duration-300 ease-in-out data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-3 data-[state=active]:duration-200">
+                <div className="space-y-3">
+                  <Label htmlFor="content" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    笔记内容
+                  </Label>
+                  <div className="relative group">
+                    <Textarea
+                      id="content"
+                      placeholder="开始写下你的想法... 支持 Markdown 格式、数学公式 ($\LaTeX$) 和代码高亮"
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      className="min-h-[140px] p-4 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-green-300 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-200 resize-none leading-relaxed focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
+                      required
+                    />
+                    <div className="absolute top-3 right-3 opacity-20 group-focus-within:opacity-40 transition-opacity">
+                      <FileText className="h-5 w-5 text-green-600" />
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
 
               {/* 通用字段 */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">标题（可选）</Label>
+              <div className="space-y-4 pt-3 border-t border-gray-200">
+                <div className="space-y-3">
+                  <Label htmlFor="title" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    标题（可选）
+                  </Label>
                   <Input
                     id="title"
                     placeholder={activeTab === "link" ? "自定义标题，留空使用网页标题" : "为你的笔记添加标题"}
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
+                    className="h-12 px-4 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-purple-300 focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">描述（可选）</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="description" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    描述（可选）
+                  </Label>
                   <Textarea
                     id="description"
                     placeholder={activeTab === "link" ? "自定义描述，留空使用网页描述" : "添加一些描述信息"}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="min-h-[60px] resize-none"
+                    className="min-h-[80px] p-4 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-orange-300 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all duration-200 resize-none leading-relaxed focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="tags" className="flex items-center gap-2">
-                    <Tag className="h-4 w-4" />
+                <div className="space-y-3">
+                  <Label htmlFor="tags" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+                    <Tag className="h-4 w-4 text-pink-600" />
                     标签（可选）
                   </Label>
                   <Input
@@ -258,32 +322,34 @@ export default function CreateNoteDialog({
                     placeholder="用逗号分隔多个标签，如：工作,学习,想法"
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
+                    className="h-12 px-4 text-base rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm shadow-inner hover:border-pink-300 focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-offset-0 focus-visible:ring-0"
                   />
                   {tags && (
-                    <div className="flex flex-wrap gap-1 mt-2">
+                    <div className="flex flex-wrap gap-2 mt-3">
                       {tags.split(',').filter(tag => tag.trim()).map((tag, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                        <div key={index} className="inline-flex items-center px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 text-sm font-medium shadow-sm ring-1 ring-pink-200/50">
                           {tag.trim()}
-                        </Badge>
+                        </div>
                       ))}
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setOpen(false)}
                   disabled={isLoading}
+                  className="px-6 py-3 h-12 rounded-xl border-2 border-gray-300 bg-white/80 hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200 font-medium"
                 >
                   取消
                 </Button>
                 <Button
                   type="submit"
                   disabled={isLoading || (activeTab === "link" && !url) || (activeTab === "text" && !content)}
-                  className="min-w-[100px]"
+                  className="min-w-[120px] px-6 py-3 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 shadow-lg shadow-blue-200/50 border-0 transition-all duration-200 font-semibold"
                 >
                   {isLoading ? (
                     <>
@@ -291,16 +357,21 @@ export default function CreateNoteDialog({
                       创建中...
                     </>
                   ) : (
-                    "创建笔记"
+                    <>
+                      <div className="mr-2 p-1 rounded-md bg-white/20">
+                        <FileText className="h-4 w-4" />
+                      </div>
+                      创建笔记
+                    </>
                   )}
                 </Button>
               </div>
             </form>
           </Tabs>
           
-          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
+          <DialogPrimitive.Close className="absolute right-6 top-6 p-2 rounded-xl bg-gray-100/80 hover:bg-gray-200 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 shadow-sm backdrop-blur-sm">
+            <X className="h-5 w-5 text-gray-600" />
+            <span className="sr-only">关闭</span>
           </DialogPrimitive.Close>
         </DialogPrimitive.Content>
       </DialogPortal>
