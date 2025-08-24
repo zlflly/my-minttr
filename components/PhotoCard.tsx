@@ -43,7 +43,7 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
     ...note,
     color: localColor,
     isHidden: localIsHidden
-  }), [note, localColor, localIsHidden])
+  }), [note, localColor, localIsHidden, note.tags, note.content, note.title])
   
   // 同步本地状态与props状态
   useEffect(() => {

@@ -72,8 +72,8 @@ export default function PhotoEditDialog({
 
     try {
       const updateData: Partial<Note> = {
-        content: content.trim() || undefined,
-        title: content.trim() ? (content.trim().slice(0, 50) + (content.trim().length > 50 ? '...' : '')) : note.title,
+        content: content.trim(),
+        title: content.trim() ? (content.trim().slice(0, 50) + (content.trim().length > 50 ? '...' : '')) : '',
         tags: tags.trim()
       }
 
