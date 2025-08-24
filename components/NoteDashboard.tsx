@@ -2,8 +2,8 @@
 
 import type React from "react"
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { Loader2, Calendar } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { Loader2, Calendar, Grid3X3, Columns3 } from "lucide-react"
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion"
 import NoteCard from "./NoteCard"
 import NewNoteMenu from "./NewNoteMenu"
 import SearchBar from "./SearchBar"
@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button"
 import { fetchNotes, deleteNote } from "@/lib/api"
 import type { Note, ThrottledFunction } from "@/lib/types"
 import { DashboardSkeleton, LoadMoreSkeleton } from "./LoadingSkeleton"
+
+// 布局类型
+type LayoutType = 'grid' | 'waterfall'
 
 export default function NoteDashboard() {
   const [notes, setNotes] = useState<Note[]>([])
@@ -25,93 +28,28 @@ export default function NoteDashboard() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchMode, setIsSearchMode] = useState(false)
   const [shouldClearSearchBar, setShouldClearSearchBar] = useState(false)
-  const [layoutReady, setLayoutReady] = useState(true) // 控制layout动画时机
+  const [layoutType, setLayoutType] = useState<LayoutType>('grid')
   
-  // 超快速布局稳定检测 - 针对搜索操作，避免双重移动
-  const waitForLayoutStable = useCallback(() => {
-    return new Promise<void>((resolve) => {
-      // 策略：使用MutationObserver + ResizeObserver组合，实现最快检测
-      const container = document.querySelector('[class*="columns-"]')
-      
-      if (container && 'ResizeObserver' in window && 'MutationObserver' in window) {
-        let resolved = false
-        let resizeObserver: ResizeObserver | null = null
-        let mutationObserver: MutationObserver | null = null
-        
-        const resolveOnce = () => {
-          if (resolved) return
-          resolved = true
-          
-          if (resizeObserver) resizeObserver.disconnect()
-          if (mutationObserver) mutationObserver.disconnect()
-          
-          resolve()
-        }
-        
-        // 方法1: 监听容器尺寸变化
-        resizeObserver = new ResizeObserver(() => {
-          // 尺寸变化意味着CSS Columns重新布局完成
-          resolveOnce()
-        })
-        resizeObserver.observe(container)
-        
-        // 方法2: 监听DOM变化（子元素添加/移除）
-        mutationObserver = new MutationObserver(() => {
-          // DOM变化后，给一帧时间让CSS重新计算
-          requestAnimationFrame(resolveOnce)
-        })
-        mutationObserver.observe(container, { 
-          childList: true, 
-          subtree: true 
-        })
-        
-        // 极短超时：如果16ms内没有变化，立即启用动画
-        setTimeout(resolveOnce, 16) // 1帧时间
-        
-      } else {
-        // 降级方案：使用优化的RAF，确保布局稳定
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            resolve()
-          })
-        })
-      }
-    })
-  }, [])
-
-  // 快速布局检测 - 针对清空搜索的快速响应
-  const waitForQuickLayout = useCallback(() => {
-    return new Promise<void>((resolve) => {
-      // 清空搜索时只需要等待一次重绘即可，因为布局变化相对简单
-      requestAnimationFrame(() => {
-        // 只等待一帧，确保DOM更新完成
-        resolve()
-      })
-    })
-  }, [])
-
   // 计算网站运行天数
   useEffect(() => {
     const calculateDays = () => {
-      const startDate = new Date('2025-08-22T00:00:00') // 网站创建日期，指定为当天开始
+      const startDate = new Date('2025-08-22T00:00:00')
       const today = new Date()
       
-      // 使用Date对象的内置方法计算天数差
       const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
       const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
       
       const timeDiff = todayOnly.getTime() - startDateOnly.getTime()
       const days = Math.floor(timeDiff / (1000 * 3600 * 24))
       
-      return Math.max(0, days) // 确保不会是负数
+      return Math.max(0, days)
     }
 
     setDaysSinceStart(calculateDays())
 
-    // 每小时更新一次（在日期变化时及时更新）
     const interval = setInterval(() => {
       setDaysSinceStart(calculateDays())
-    }, 60 * 60 * 1000) // 每小时更新一次
+    }, 60 * 60 * 1000)
 
     return () => clearInterval(interval)
   }, [])
@@ -119,7 +57,6 @@ export default function NoteDashboard() {
   // 获取笔记列表
   const loadNotes = async (page = 1, append = false, search?: string) => {
     try {
-      // 优化：减少不必要的状态更新延迟
       if (!append) {
         if (search) {
           setIsSearching(true)
@@ -133,17 +70,14 @@ export default function NoteDashboard() {
       
       const response = await fetchNotes(page, 20, search)
       if (response.success && response.data) {
-        // 过滤无效的笔记对象
         const validNotes = response.data.filter(note => note && note.id && typeof note.id === 'string')
         
         if (append) {
           setNotes((prev) => [...prev, ...validNotes])
         } else {
-          // 搜索时立即更新notes，提供即时反馈
           setNotes(validNotes)
         }
         
-        // 更新分页信息
         if (response.pagination) {
           setTotalNotes(response.pagination.total)
           setHasMore(page < response.pagination.totalPages)
@@ -155,7 +89,6 @@ export default function NoteDashboard() {
       console.error("获取笔记失败:", error)
       setError("网络错误，请稍后重试")
     } finally {
-      // 优化：立即清理加载状态，减少UI阻塞
       if (!append) {
         if (search) {
           setIsSearching(false)
@@ -168,37 +101,24 @@ export default function NoteDashboard() {
     }
   }
 
-  // 搜索处理 - 修复双重移动问题，保留所有功能
+  // 搜索处理 - 直接加载，让 Framer Motion 自动处理动画
   const handleSearch = async (query: string) => {
     setSearchQuery(query)
     setIsSearchMode(true)
     setCurrentPage(1)
     
-    // 修复：禁用layout动画，防止搜索时的双重移动
-    setLayoutReady(false)
-    
-    // 加载搜索结果
+    // 直接加载，无需等待布局稳定
     await loadNotes(1, false, query)
-    
-    // 修复：等待布局稳定后再启用layout动画，避免双重移动
-    await waitForLayoutStable()
-    setLayoutReady(true)
   }
 
-  // 清空搜索 - 最快响应版本
+  // 清空搜索
   const handleClearSearch = async () => {
     setSearchQuery("")
     setIsSearchMode(false)
     setCurrentPage(1)
     
-    // 触发搜索栏清空
     setShouldClearSearchBar(true)
-    
-    // 加载数据，但不禁用layout动画
-    // 清空搜索的布局变化相对简单，可以直接让Framer Motion处理
     await loadNotes(1, false)
-    
-    // 立即清理搜索栏状态
     setShouldClearSearchBar(false)
   }
 
@@ -226,7 +146,7 @@ export default function NoteDashboard() {
     };
   }, []);
 
-  // 无限滚动检测 - 使用节流优化性能
+  // 无限滚动检测
   useEffect(() => {
     const handleScroll = throttle(() => {
       const scrollThreshold = 1000;
@@ -236,7 +156,7 @@ export default function NoteDashboard() {
       if (hasReachedBottom && hasMore && !isLoadingMore && !isSearching) {
         loadMore();
       }
-    }, 200); // 200ms 节流
+    }, 200);
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -250,22 +170,18 @@ export default function NoteDashboard() {
   // 处理新笔记创建
   const handleNoteCreated = (newNote: Note) => {
     try {
-      // 验证新笔记是否有效
       if (!newNote || !newNote.id || typeof newNote.id !== 'string') {
         console.error('Invalid note object:', newNote)
         return
       }
       
       setNotes((prev) => {
-        // 确保新笔记添加到数组顶部，并且不重复
         const existingIndex = prev.findIndex(note => note?.id === newNote.id)
         if (existingIndex >= 0) {
-          // 如果笔记已存在，更新它
           const updated = [...prev]
           updated[existingIndex] = newNote
           return updated
         } else {
-          // 如果是新笔记，添加到顶部
           return [newNote, ...prev]
         }
       })
@@ -307,6 +223,146 @@ export default function NoteDashboard() {
     }
   }
 
+  // 切换布局类型
+  const toggleLayout = useCallback(() => {
+    setLayoutType(prev => prev === 'grid' ? 'waterfall' : 'grid')
+  }, [])
+
+  // 优化的动画配置
+  const cardVariants = {
+    initial: { opacity: 0, scale: 0.9, y: 20 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    exit: { opacity: 0, scale: 0.9, y: -20 },
+    hover: { scale: 1.02, y: -2 },
+    tap: { scale: 0.98 }
+  }
+
+  const layoutTransition = {
+    type: "spring" as const,
+    damping: 20,
+    stiffness: 400,
+    mass: 0.8,
+    restDelta: 0.001
+  }
+
+  // 渲染卡片内容
+  const renderCards = () => {
+    const filteredNotes = notes
+      .filter((note): note is Note => {
+        try {
+          return Boolean(
+            note && 
+            typeof note === 'object' && 
+            'id' in note &&
+            note.id && 
+            typeof note.id === 'string' &&
+            note.id.length > 0 &&
+            'type' in note &&
+            ['LINK', 'TEXT', 'IMAGE'].includes(note.type as string)
+          );
+        } catch (error) {
+          console.warn('Invalid note object:', note, error);
+          return false;
+        }
+      })
+
+    if (layoutType === 'grid') {
+      return (
+        <motion.div 
+          className="grid gap-4"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gridAutoRows: 'auto',
+            gridAutoFlow: 'dense'
+          }}
+          layout
+          transition={layoutTransition}
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredNotes.map((note) => {
+              try {
+                return (
+                  <motion.div 
+                    key={note.id}
+                    layoutId={note.id}
+                    className="will-change-transform"
+                    variants={cardVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    whileHover="hover"
+                    whileTap="tap"
+                    transition={{
+                      opacity: { duration: 0.15 },
+                      scale: { duration: 0.15 },
+                      y: { duration: 0.15 },
+                      layout: layoutTransition
+                    }}
+                  >
+                    <NoteCard 
+                      note={note} 
+                      onDelete={handleNoteDelete}
+                      onNoteUpdate={handleNoteUpdate}
+                      searchTerm={isSearchMode ? searchQuery : ""}
+                    />
+                  </motion.div>
+                )
+              } catch (error) {
+                console.error('Error rendering note:', note.id, error)
+                return null
+              }
+            })}
+          </AnimatePresence>
+        </motion.div>
+      )
+    } else {
+      // 瀑布流布局
+      return (
+        <motion.div 
+          className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4"
+          layout
+          transition={layoutTransition}
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredNotes.map((note) => {
+              try {
+                return (
+                  <motion.div 
+                    key={note.id}
+                    layoutId={note.id}
+                    className="will-change-transform break-inside-avoid mb-4"
+                    variants={cardVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    whileHover="hover"
+                    whileTap="tap"
+                    transition={{
+                      opacity: { duration: 0.15 },
+                      scale: { duration: 0.15 },
+                      y: { duration: 0.15 },
+                      layout: layoutTransition
+                    }}
+                  >
+                    <NoteCard 
+                      note={note} 
+                      onDelete={handleNoteDelete}
+                      onNoteUpdate={handleNoteUpdate}
+                      searchTerm={isSearchMode ? searchQuery : ""}
+                    />
+                  </motion.div>
+                )
+              } catch (error) {
+                console.error('Error rendering note:', note.id, error)
+                return null
+              }
+            })}
+          </AnimatePresence>
+        </motion.div>
+      )
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#F6F4F0] p-4">
       {/* 搜索栏 */}
@@ -320,7 +376,7 @@ export default function NoteDashboard() {
 
       {/* 内容区域 */}
       <div className="">
-        {/* 固定间距容器 - 确保卡片位置一致 */}
+        {/* 固定间距容器 */}
         <div className="h-3"></div>
 
         {/* 内容区域 */}
@@ -362,105 +418,48 @@ export default function NoteDashboard() {
           </div>
         ) : (
           <>
-            {/* Masonry layout with animations */}
-            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4 transition-all duration-300 ease-out">
-              <AnimatePresence 
-                mode="popLayout"
-                initial={false}
-              >
-                {notes
-                  .filter((note): note is Note => {
-                    try {
-                      return Boolean(
-                        note && 
-                        typeof note === 'object' && 
-                        'id' in note &&
-                        note.id && 
-                        typeof note.id === 'string' &&
-                        note.id.length > 0 &&
-                        'type' in note &&
-                        ['LINK', 'TEXT', 'IMAGE'].includes(note.type as string)
-                      );
-                    } catch (error) {
-                      console.warn('Invalid note object:', note, error);
-                      return false;
-                    }
-                  })
-                  .map((note) => {
-                    try {
-                      return (
-                        <motion.div 
-                          key={`note-${note.id}`}
-                          layoutId={`card-${note.id}`}
-                          className="break-inside-avoid will-change-transform transform-gpu"
-                          layout={layoutReady ? "position" : false}
-                          initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                          transition={{
-                            duration: 0.3,        // 减少动画时长，更快响应
-                            ease: [0.4, 0.0, 0.2, 1],
-                            layout: { 
-                              type: "spring",
-                              damping: 20,        // 增加阻尼，减少弹跳
-                              stiffness: 300,     // 增加刚性，更快响应
-                              mass: 0.6,          // 减少质量，更轻盈
-                              restSpeed: 0.001,   // 严格的静止判断
-                              restDelta: 0.001    // 严格的位置容差
-                            }
-                          }}
-                        >
-                          <NoteCard 
-                            note={note} 
-                            onDelete={handleNoteDelete}
-                            onNoteUpdate={handleNoteUpdate}
-                            searchTerm={isSearchMode ? searchQuery : ""}
-                          />
-                        </motion.div>
-                      )
-                    } catch (error) {
-                      console.error('Error rendering note:', note.id, error)
-                      return null
-                    }
-                  })
-                  .filter(Boolean)
-                }
-              </AnimatePresence>
-            </div>
+            {/* 优化的布局系统，支持 Grid 和瀑布流切换 */}
+            <LayoutGroup>
+              {renderCards()}
+            </LayoutGroup>
           
-          {/* 加载更多指示器 - 使用骨架屏 */}
-          {isLoadingMore && <LoadMoreSkeleton />}
-          
-          {/* 已加载完所有数据提示 */}
-          {!hasMore && notes.length > 0 && (
-            <div className="flex items-center justify-center py-8">
-              <p className="text-[#A3A3A3] text-sm">
-              created by [zlflly](https://github.com/zlflly)
-                ---total {totalNotes} notes 💖--show: {notes.length} 🤠---
-              </p>
-            </div>
-          )}
-          
-          {/* 手动加载更多按钮 (备用) */}
-          {hasMore && !isLoadingMore && notes.length > 0 && (
-            <div className="flex items-center justify-center py-8">
-              <Button 
-                onClick={loadMore}
-                variant="outline"
-                className="text-[#1C1917] border-[#1C1917]"
-              >
-                加载更多
-              </Button>
-            </div>
-          )}
+            {/* 加载更多指示器 */}
+            {isLoadingMore && <LoadMoreSkeleton />}
+            
+            {/* 已加载完所有数据提示 */}
+            {!hasMore && notes.length > 0 && (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-[#A3A3A3] text-sm">
+                  created by [zlflly](https://github.com/zlflly)
+                  ---total {totalNotes} notes 💖--show: {notes.length} 🤌 ---
+                </p>
+              </div>
+            )}
+            
+            {/* 手动加载更多按钮 (备用) */}
+            {hasMore && !isLoadingMore && notes.length > 0 && (
+              <div className="flex items-center justify-center py-8">
+                <Button 
+                  onClick={loadMore}
+                  variant="outline"
+                  className="text-[#1C1917] border-[#1C1917]"
+                >
+                  加载更多
+                </Button>
+              </div>
+            )}
           </>
         )}
       </div>
       
-      {/* New Note Menu */}
-      <NewNoteMenu onNoteCreated={handleNoteCreated} />
+      {/* New Note Menu - 传递布局切换函数 */}
+      <NewNoteMenu 
+        onNoteCreated={handleNoteCreated} 
+        onLayoutToggle={toggleLayout}
+        currentLayout={layoutType}
+      />
       
-      {/* 网站运行天数展示条 */}
+      {/* 网站运行天数展示栏 */}
       <div className="fixed bottom-4 right-4 z-40 bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-xl px-3 py-2 shadow-lg">
         <div className="flex items-center gap-2 text-xs text-[#A3A3A3]">
           <Calendar className="h-3 w-3" />

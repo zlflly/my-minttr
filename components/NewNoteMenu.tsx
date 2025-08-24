@@ -2,11 +2,12 @@
 
 import React, { useState, useRef, useEffect, useId } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImageIcon, LinkIcon, MindIcon, PlusIcon } from './PhotoIcons';
+import { ImageIcon, LinkIcon, MindIcon, PlusIcon, Grid3X3, Columns3 } from './PhotoIcons';
 import PhotoUploader from './PhotoUploader';
 import CreateNoteDialog from './CreateNoteDialog';
 import { NewPhotoData } from '@/lib/photo-types';
 import { Note, createNote } from '@/lib/api';
+import type { CreateNoteData } from '@/lib/types';
 import { 
   useAccessibility, 
   AriaLabels, 
@@ -15,8 +16,13 @@ import {
   FocusManager
 } from '@/lib/accessibility';
 
+// 布局类型
+type LayoutType = 'grid' | 'waterfall'
+
 interface NewNoteMenuProps {
   onNoteCreated: (note: Note) => void;
+  onLayoutToggle?: () => void;
+  currentLayout?: LayoutType;
 }
 
 // --- Animation Variants --- //
@@ -79,7 +85,11 @@ const itemVariants = {
   },
 };
 
-const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
+const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ 
+  onNoteCreated, 
+  onLayoutToggle, 
+  currentLayout = 'grid' 
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false);
   const [createNoteOpen, setCreateNoteOpen] = useState(false);
@@ -98,111 +108,129 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
 
   useEffect(() => {
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, []);
 
-  const triggerVibration = () => {
-    if ('vibrate' in navigator) navigator.vibrate(50);
+  // 处理主按钮点击
+  const handleMainButtonClick = () => {
+    justClickedRef.current = true;
+    setIsExpanded(!isExpanded);
+    
+    if (!isExpanded) {
+      announce('新建菜单已展开');
+    } else {
+      announce('新建菜单已关闭');
+    }
   };
 
-  const openDialog = (type: "image" | "link" | "text") => {
-    triggerVibration();
-    setIsExpanded(false);
+  // 处理鼠标进入
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    if (!justClickedRef.current) {
+      setIsExpanded(true);
+      announce('新建菜单已展开');
+    }
+  };
+
+  // 处理鼠标离开
+  const handleMouseLeave = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     
-    // 宣布选择的类型
-    const typeNames = { image: '图片', link: '链接', text: '文本' };
-    announce(`正在创建${typeNames[type]}笔记`);
-    
-    if (type === 'image') {
+    timeoutRef.current = setTimeout(() => {
+      if (!justClickedRef.current) {
+        setIsExpanded(false);
+        announce('新建菜单已关闭');
+      }
+    }, 300);
+  };
+
+  // 处理对话框打开
+  const openDialog = (type: "photo" | "link" | "text") => {
+    if (type === "photo") {
       setPhotoUploaderOpen(true);
     } else {
       setNoteType(type);
       setCreateNoteOpen(true);
     }
+    setIsExpanded(false);
+    announce(`打开${type === "photo" ? "图片上传" : type === "link" ? "链接笔记" : "文本笔记"}对话框`);
   };
 
-  const handleMainButtonClick = () => {
-    triggerVibration();
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
-    // If we are closing the menu via click, set the ref
-    if (isExpanded) {
-      justClickedRef.current = true;
-      announce('菜单已关闭');
-    } else {
-      announce('新建笔记菜单已打开');
-    }
-
-    setIsExpanded(!isExpanded);
-  };
-
-  const handleMouseEnter = () => {
-    // If a click just happened, ignore the hover event
-    if (justClickedRef.current) {
-      return;
-    }
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (!isExpanded) setIsExpanded(true);
-  };
-
-  const handleMouseLeave = () => {
-    // When mouse leaves, always reset the click ref
-    justClickedRef.current = false;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => setIsExpanded(false), 300);
-  };
-
-  const handlePhotoSubmit = async (data: NewPhotoData) => {
+  // 处理图片提交
+  const handlePhotoSubmit = async (photoData: NewPhotoData) => {
     try {
-      const formData = new FormData();
-      formData.append('file', data.file);
-      const uploadResponse = await fetch('/api/blob', { method: 'POST', body: formData });
-      if (!uploadResponse.ok) throw new Error('图片上传失败');
-      const uploadResult = await uploadResponse.json();
-      if (!uploadResult.success) throw new Error(uploadResult.error?.message || '图片上传失败');
-      const noteData = {
-        type: 'IMAGE' as const,
-        title: data.note || '图片笔记',
-        content: data.note,
-        imageUrl: uploadResult.data.url,
-        tags: data.tags || ''
+      const newNote: CreateNoteData = {
+        type: "IMAGE",
+        title: photoData.note || "Image Note",
+        content: photoData.note,
+        imageUrl: photoData.file ? URL.createObjectURL(photoData.file) : "",
+        tags: photoData.tags || "",
       };
-      const response = await createNote(noteData);
+
+      const response = await createNote(newNote);
       if (response.success && response.data) {
         onNoteCreated(response.data);
-        setPhotoUploaderOpen(false);
+        announce('Image note created successfully');
       } else {
-        throw new Error(response.error?.message || '创建笔记失败');
+        console.error("Failed to create image note:", response.error);
+        announce('Failed to create image note');
       }
     } catch (error) {
-      console.error('上传图片失败:', error);
-      alert('图片上传失败: ' + (error instanceof Error ? error.message : '未知错误'));
-      setPhotoUploaderOpen(false);
+      console.error("Error creating image note:", error);
+      announce('Failed to create image note');
     }
   };
 
-  const menuItems = [
-    { id: 'mind', label: 'Mind', icon: MindIcon, hotkey: '1', type: 'text' as const, ariaLabel: '创建思维笔记' },
-    { id: 'link', label: 'Link', icon: LinkIcon, hotkey: '2', type: 'link' as const, ariaLabel: '创建链接笔记' },
-    { id: 'image', label: 'Image', icon: ImageIcon, hotkey: '3', type: 'image' as const, ariaLabel: '创建图片笔记' }
-  ];
-  
-  // 键盘导航处理
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (!isExpanded) {
-      if (event.key === KeyboardKeys.ENTER || event.key === KeyboardKeys.SPACE) {
-        event.preventDefault();
-        handleMainButtonClick();
-      }
-      return;
+  // 处理布局切换
+  const handleLayoutToggle = () => {
+    if (onLayoutToggle) {
+      onLayoutToggle();
+      announce(`Switched to ${currentLayout === 'grid' ? 'Waterfall' : 'Grid'} layout`);
     }
+  };
 
+  // 菜单项配置
+  const menuItems = [
+    {
+      id: "photo",
+      type: "photo" as const,
+      label: "Image",
+      icon: ImageIcon,
+      hotkey: "1",
+      ariaLabel: "Create image note"
+    },
+    {
+      id: "link",
+      type: "link" as const,
+      label: "Link",
+      icon: LinkIcon,
+      hotkey: "2",
+      ariaLabel: "Create link note"
+    },
+    {
+      id: "text",
+      type: "text" as const,
+      label: "Mind",
+      icon: MindIcon,
+      hotkey: "3",
+      ariaLabel: "Create mind note"
+    }
+  ];
+
+  // 键盘事件处理
+  const handleKeyDown = (event: React.KeyboardEvent) => {
     switch (event.key) {
       case KeyboardKeys.ESCAPE:
         event.preventDefault();
         setIsExpanded(false);
-        announce('菜单已关闭');
+        announce('Menu closed');
         break;
       case '1':
       case '2':
@@ -285,12 +313,44 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
                       </div>
                       <kbd 
                         className="inline-flex items-center justify-center flex-shrink-0 font-mono font-normal text-xs min-w-[1.75em] h-fit px-2 py-0.5 rounded bg-white/50 text-gray-700 backdrop-blur-sm"
-                        aria-label={`快捷键 ${item.hotkey}`}
+                        aria-label={`Shortcut ${item.hotkey}`}
                       >
                         {item.hotkey}
                       </kbd>
                     </motion.button>
                   ))}
+                  
+                  {/* 布局切换按钮 */}
+                  {onLayoutToggle && (
+                    <>
+                      <motion.div className="h-[0.5px] bg-gray-200/40 mx-3 my-1" variants={itemVariants} />
+                      <motion.button
+                        onClick={handleLayoutToggle}
+                        className="w-full text-[15px] font-semibold text-gray-800 hover:bg-gray-200/60 active:bg-gray-300/50 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect focus:outline-none focus:ring-0 focus:shadow-none focus-visible:outline-none"
+                        style={{ outline: 'none', boxShadow: 'none' }}
+                        variants={itemVariants}
+                        role="menuitem"
+                        aria-label={`Switch to ${currentLayout === 'grid' ? 'Waterfall' : 'Grid'} layout`}
+                        tabIndex={0}
+                      >
+                        <div className="flex items-center gap-2">
+                          {currentLayout === 'grid' ? (
+                            <Columns3 className="w-[1em] h-[1em] text-current" />
+                          ) : (
+                            <Grid3X3 className="w-[1em] h-[1em] text-current" />
+                          )}
+                          {currentLayout === 'grid' ? 'Waterfall' : 'Grid'}
+                        </div>
+                        <kbd 
+                          className="inline-flex items-center justify-center flex-shrink-0 font-mono font-normal text-xs min-w-[1.75em] h-fit px-2 py-0.5 rounded bg-white/50 text-gray-700 backdrop-blur-sm"
+                          aria-label="Shortcut L"
+                        >
+                          L
+                        </kbd>
+                      </motion.button>
+                    </>
+                  )}
+                  
                   <motion.div className="h-[0.5px] bg-gray-200/40 mx-3 my-1" variants={itemVariants} />
                 </div>
                 <button
@@ -299,7 +359,7 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
                   style={{ outline: 'none', boxShadow: 'none' }}
                   onClick={handleMainButtonClick}
                   role="menuitem"
-                  aria-label="关闭新建菜单"
+                  aria-label="Close new note menu"
                   tabIndex={0}
                 >
                   <motion.div animate={{ rotate: 45 }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}>

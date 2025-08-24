@@ -50,6 +50,30 @@ export const PlusIcon: React.FC<{ className?: string }> = ({ className = "w-[1em
   </svg>
 );
 
+export const Grid3X3: React.FC<{ className?: string }> = ({ className = "w-[1em] h-[1em]" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className={className}>
+    <rect width="256" height="256" fill="none"></rect>
+    <rect x="40" y="40" width="48" height="48" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+    <rect x="104" y="40" width="48" height="48" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+    <rect x="168" y="40" width="48" height="48" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+    <rect x="40" y="104" width="48" height="48" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+    <rect x="104" y="104" width="48" height="48" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+    <rect x="168" y="104" width="48" height="48" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+    <rect x="40" y="168" width="48" height="48" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+    <rect x="104" y="168" width="48" height="48" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+    <rect x="168" y="168" width="48" height="48" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+  </svg>
+);
+
+export const Columns3: React.FC<{ className?: string }> = ({ className = "w-[1em] h-[1em]" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className={className}>
+    <rect width="256" height="256" fill="none"></rect>
+    <rect x="40" y="40" width="48" height="176" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+    <rect x="104" y="40" width="48" height="176" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+    <rect x="168" y="40" width="48" height="176" rx="8" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></rect>
+  </svg>
+);
+
 export const UploadIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256" className={className}>
     <path d="M107.33,149.78a4,4,0,0,0-6.66,0L76.42,186.15,63.36,165.84a4,4,0,0,0-6.72,0l-36,56A4,4,0,0,0,24,228H152a4,4,0,0,0,3.33-6.22ZM31.33,220,60,175.4l13,20.22a4,4,0,0,0,3.33,1.83,3.93,3.93,0,0,0,3.36-1.78L104,159.21,144.53,220ZM210.83,85.17l-56-56A4,4,0,0,0,152,28H56A12,12,0,0,0,44,40v88a4,4,0,0,0,8,0V40a4,4,0,0,1,4-4h92V88a4,4,0,0,0,4,4h52V216a4,4,0,0,1-4,4h-8a4,4,0,0,0,0,8h8a12,12,0,0,0,12-12V88A4,4,0,0,0,210.83,85.17ZM156,41.65,198.34,84H156Z"></path>
