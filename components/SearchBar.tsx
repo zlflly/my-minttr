@@ -77,8 +77,9 @@ export default function SearchBar({
             />
             <div className="px-3">
               {isLoading ? (
-                <Loader2 className="h-5 w-5 text-[#A3A3A3] animate-spin" />
-              ) : hasSearched && query ? (
+                <Loader2 className="h-5 w-5 text-[#A3A3A7] animate-spin" />
+              ) : hasSearched ? (
+                // 只要搜索过，就显示X按钮，不管搜索框是否有内容
                 <Button
                   onClick={handleClear}
                   variant="ghost"
