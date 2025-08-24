@@ -94,6 +94,7 @@ export default function NoteDashboard() {
   // 获取笔记列表
   const loadNotes = async (page = 1, append = false, search?: string) => {
     try {
+      // 优化：减少不必要的状态更新延迟
       if (!append) {
         if (search) {
           setIsSearching(true)
@@ -113,6 +114,7 @@ export default function NoteDashboard() {
         if (append) {
           setNotes((prev) => [...prev, ...validNotes])
         } else {
+          // 搜索时立即更新notes，提供即时反馈
           setNotes(validNotes)
         }
         
@@ -128,26 +130,35 @@ export default function NoteDashboard() {
       console.error("获取笔记失败:", error)
       setError("网络错误，请稍后重试")
     } finally {
-      setIsLoading(false)
-      setIsLoadingMore(false)
-      setIsSearching(false)
+      // 优化：立即清理加载状态，减少UI阻塞
+      if (!append) {
+        if (search) {
+          setIsSearching(false)
+        } else {
+          setIsLoading(false)
+        }
+      } else {
+        setIsLoadingMore(false)
+      }
     }
   }
 
-  // 搜索处理
+  // 搜索处理 - 超快速版本
   const handleSearch = async (query: string) => {
     setSearchQuery(query)
     setIsSearchMode(true)
     setCurrentPage(1)
     
-    // 禁用layout动画，防止搜索时的双重移动
-    setLayoutReady(false)
+    // 策略：立即启用动画，让用户看到即时反馈
+    // 搜索结果的布局变化由Framer Motion自然处理，无需等待
     
-    await loadNotes(1, false, query)
-    
-    // 等待布局稳定后再启用layout动画
-    await waitForLayoutStable()
+    // 立即启用动画，提供即时视觉反馈
     setLayoutReady(true)
+    
+    // 异步加载搜索结果，不阻塞UI响应
+    loadNotes(1, false, query).catch(error => {
+      console.error("搜索失败:", error)
+    })
   }
 
   // 清空搜索 - 最快响应版本
@@ -363,15 +374,15 @@ export default function NoteDashboard() {
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.8, y: -20 }}
                           transition={{
-                            duration: 0.3,
+                            duration: 0.2,        // 减少动画时长，更快响应
                             ease: [0.4, 0.0, 0.2, 1],
                             layout: { 
                               type: "spring",
-                              damping: 20,        // 增加阻尼，减少过度弹跳
-                              stiffness: 300,     // 适度降低刚性，更平滑
-                              mass: 0.8,          // 适度增加质量，更稳定
-                              restSpeed: 0.001,   // 更严格的静止判断
-                              restDelta: 0.001    // 更严格的位置容差
+                              damping: 25,        // 增加阻尼，减少弹跳
+                              stiffness: 400,     // 增加刚性，更快响应
+                              mass: 0.6,          // 减少质量，更轻盈
+                              restSpeed: 0.001,   // 严格的静止判断
+                              restDelta: 0.001    // 严格的位置容差
                             }
                           }}
                         >
