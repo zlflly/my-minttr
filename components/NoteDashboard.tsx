@@ -233,14 +233,14 @@ export default function NoteDashboard() {
 
       {/* 内容区域 */}
       <div className="">
-        {/* 搜索状态提示 */}
-        {isSearchMode && (
-          <div className="text-center">
+        {/* 搜索状态提示 - 固定高度确保卡片位置一致 */}
+        <div className="text-center h-3 flex items-center justify-center">
+          {isSearchMode && (
             <p className="text-[#A3A3A3] text-sm">
               搜索 "{searchQuery}" 的结果：{notes.length} 条
             </p>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* 内容区域 */}
         {(isLoading || isSearching) && notes.length === 0 ? (
@@ -311,7 +311,7 @@ export default function NoteDashboard() {
                         <motion.div 
                           key={`note-${note.id}`}
                           layoutId={`card-${note.id}`}
-                          className="break-inside-avoid will-change-transform"
+                          className="break-inside-avoid will-change-transform transform-gpu"
                           layout="position"
                           initial={{ opacity: 0, scale: 0.8, y: 20 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -321,9 +321,11 @@ export default function NoteDashboard() {
                             ease: [0.4, 0.0, 0.2, 1],
                             layout: { 
                               type: "spring",
-                              damping: 25,
-                              stiffness: 300,
-                              duration: 0.5
+                              damping: 15,        // 减少阻尼，增加弹性效果
+                              stiffness: 500,     // 增加刚性，更快响应
+                              mass: 0.6,          // 减少质量，更轻盈
+                              restSpeed: 0.01,    // 更精确的静止判断
+                              restDelta: 0.01     // 更精确的位置容差
                             }
                           }}
                         >
