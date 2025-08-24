@@ -282,8 +282,11 @@ export default function NoteDashboard() {
         ) : (
           <>
             {/* Masonry layout with animations */}
-            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
-              <AnimatePresence mode="popLayout">
+            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4 transition-all duration-300 ease-out">
+              <AnimatePresence 
+                mode="popLayout"
+                initial={false}
+              >
                 {notes
                   .filter((note): note is Note => {
                     try {
@@ -307,15 +310,21 @@ export default function NoteDashboard() {
                       return (
                         <motion.div 
                           key={`note-${note.id}`}
-                          className="break-inside-avoid"
-                          layout
+                          layoutId={`card-${note.id}`}
+                          className="break-inside-avoid will-change-transform"
+                          layout="position"
                           initial={{ opacity: 0, scale: 0.8, y: 20 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.8, y: -20 }}
                           transition={{
                             duration: 0.3,
-                            ease: "easeOut",
-                            layout: { duration: 0.3 }
+                            ease: [0.4, 0.0, 0.2, 1],
+                            layout: { 
+                              type: "spring",
+                              damping: 25,
+                              stiffness: 300,
+                              duration: 0.5
+                            }
                           }}
                         >
                           <NoteCard 

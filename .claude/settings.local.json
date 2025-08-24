@@ -23,7 +23,8 @@
       "Bash(rm:*)",
       "Bash(pnpm remove:*)",
       "Bash(pnpm add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(pnpm dev:*)"
     ],
     "deny": [],
     "ask": []
