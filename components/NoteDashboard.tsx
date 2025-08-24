@@ -366,9 +366,7 @@ export default function NoteDashboard() {
       </div>
       
       {/* New Note Menu */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-        <NewNoteMenu onNoteCreated={handleNoteCreated} />
-      </div>
+      <NewNoteMenu onNoteCreated={handleNoteCreated} />
       
       {/* 网站运行天数展示条 */}
       <div className="fixed bottom-4 right-4 z-40 bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-xl px-3 py-2 shadow-lg">

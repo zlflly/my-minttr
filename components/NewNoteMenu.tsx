@@ -239,8 +239,8 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
     <>
       <div 
         ref={menuRef}
-        className="fixed bottom-6 left-1/2 z-50"
-        style={{ transform: 'translateX(-50%)' }}
+        className="fixed bottom-6 z-50"
+        style={{ left: '50vw', transform: 'translateX(-50%)' }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onKeyDown={handleKeyDown}

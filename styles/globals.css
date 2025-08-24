@@ -129,4 +129,19 @@
     /* 禁用Android Chrome的长按菜单 */
     -webkit-touch-callout: none;
   }
+  
+  /* 隐藏滚动条但保持滚动功能 */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* 对于Firefox */
+  * {
+    scrollbar-width: none;
+  }
+  
+  /* 对于Internet Explorer和Edge */
+  * {
+    -ms-overflow-style: none;
+  }
 }

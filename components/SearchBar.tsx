@@ -62,7 +62,7 @@ export default function SearchBar({
   }
 
   return (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
+    <div className="fixed top-4 z-50 w-full max-w-md px-4" style={{ left: '50vw', transform: 'translateX(-50%)' }}>
       <div className="relative">
         <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-lg overflow-hidden">
           <div className="flex items-center">
