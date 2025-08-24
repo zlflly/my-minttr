@@ -1,5 +1,5 @@
 # MTr Backend Storage Architecture
-
+1
 ## 🏗️ System Overview
 
 This document outlines the complete backend storage architecture for MTr - a sophisticated note-taking application that handles both link bookmarks and text notes with rich metadata extraction.
