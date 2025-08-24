@@ -272,7 +272,8 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
                     <motion.button
                       key={item.id}
                       onClick={() => openDialog(item.type)}
-                      className="w-full text-[15px] font-semibold text-gray-800 hover:bg-gray-200/60 active:bg-gray-300/50 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="w-full text-[15px] font-semibold text-gray-800 hover:bg-gray-200/60 active:bg-gray-300/50 px-3 hover:px-4 py-1.5 rounded-full select-none transition-all duration-100 ease-out flex items-center justify-between gap-2 scale-effect focus:outline-none focus:ring-0 focus:shadow-none focus-visible:outline-none"
+                      style={{ outline: 'none', boxShadow: 'none' }}
                       variants={itemVariants}
                       role="menuitem"
                       aria-label={item.ariaLabel}
@@ -294,7 +295,8 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
                 </div>
                 <button
                   id={menuButtonId}
-                  className="w-full flex items-center justify-center gap-2 text-[15px] font-semibold text-gray-800 rounded-full select-none transition-all duration-200 active:scale-95 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="w-full flex items-center justify-center gap-2 text-[15px] font-semibold text-gray-800 rounded-full select-none transition-all duration-200 active:scale-95 py-1.5 focus:outline-none focus:ring-0 focus:shadow-none focus-visible:outline-none"
+                  style={{ outline: 'none', boxShadow: 'none' }}
                   onClick={handleMainButtonClick}
                   role="menuitem"
                   aria-label="关闭新建菜单"
@@ -322,10 +324,12 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({ onNoteCreated }) => {
               <button
                 id={menuButtonId}
                 onClick={handleMainButtonClick}
-                className="w-[92px] flex items-center justify-center gap-2 text-[15px] font-medium text-gray-800 rounded-3xl select-none transition-all duration-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="w-[92px] flex items-center justify-center gap-2 text-[15px] font-medium text-gray-800 rounded-3xl select-none transition-all duration-200 px-4 py-2.5 focus:outline-none focus:ring-0 focus:shadow-none focus-visible:outline-none"
                 style={{
                   ...commonStyles,
                   background: "linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75))",
+                  outline: 'none',
+                  boxShadow: commonStyles.boxShadow
                 }}
                 aria-expanded={isExpanded}
                 aria-haspopup="menu"
