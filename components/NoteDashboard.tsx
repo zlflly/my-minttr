@@ -27,30 +27,55 @@ export default function NoteDashboard() {
   const [shouldClearSearchBar, setShouldClearSearchBar] = useState(false)
   const [layoutReady, setLayoutReady] = useState(true) // 控制layout动画时机
   
-  // 布局稳定检测 - 针对搜索操作的完整等待
+  // 超快速布局稳定检测 - 针对搜索操作，避免双重移动
   const waitForLayoutStable = useCallback(() => {
     return new Promise<void>((resolve) => {
-      let rafId: number
-      let timeoutId: NodeJS.Timeout
+      // 策略：使用MutationObserver + ResizeObserver组合，实现最快检测
+      const container = document.querySelector('[class*="columns-"]')
       
-      const checkStable = () => {
-        // 使用多次requestAnimationFrame确保DOM和CSS都已更新
-        rafId = requestAnimationFrame(() => {
-          rafId = requestAnimationFrame(() => {
-            rafId = requestAnimationFrame(() => {
-              resolve()
-            })
+      if (container && 'ResizeObserver' in window && 'MutationObserver' in window) {
+        let resolved = false
+        let resizeObserver: ResizeObserver | null = null
+        let mutationObserver: MutationObserver | null = null
+        
+        const resolveOnce = () => {
+          if (resolved) return
+          resolved = true
+          
+          if (resizeObserver) resizeObserver.disconnect()
+          if (mutationObserver) mutationObserver.disconnect()
+          
+          resolve()
+        }
+        
+        // 方法1: 监听容器尺寸变化
+        resizeObserver = new ResizeObserver(() => {
+          // 尺寸变化意味着CSS Columns重新布局完成
+          resolveOnce()
+        })
+        resizeObserver.observe(container)
+        
+        // 方法2: 监听DOM变化（子元素添加/移除）
+        mutationObserver = new MutationObserver(() => {
+          // DOM变化后，给一帧时间让CSS重新计算
+          requestAnimationFrame(resolveOnce)
+        })
+        mutationObserver.observe(container, { 
+          childList: true, 
+          subtree: true 
+        })
+        
+        // 极短超时：如果16ms内没有变化，立即启用动画
+        setTimeout(resolveOnce, 16) // 1帧时间
+        
+      } else {
+        // 降级方案：使用优化的RAF，确保布局稳定
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            resolve()
           })
         })
       }
-      
-      // 设置超时保护，防止无限等待
-      timeoutId = setTimeout(() => {
-        if (rafId) cancelAnimationFrame(rafId)
-        resolve()
-      }, 200)
-      
-      checkStable()
     })
   }, [])
 
@@ -143,22 +168,21 @@ export default function NoteDashboard() {
     }
   }
 
-  // 搜索处理 - 超快速版本
+  // 搜索处理 - 修复双重移动问题，保留所有功能
   const handleSearch = async (query: string) => {
     setSearchQuery(query)
     setIsSearchMode(true)
     setCurrentPage(1)
     
-    // 策略：立即启用动画，让用户看到即时反馈
-    // 搜索结果的布局变化由Framer Motion自然处理，无需等待
+    // 修复：禁用layout动画，防止搜索时的双重移动
+    setLayoutReady(false)
     
-    // 立即启用动画，提供即时视觉反馈
+    // 加载搜索结果
+    await loadNotes(1, false, query)
+    
+    // 修复：等待布局稳定后再启用layout动画，避免双重移动
+    await waitForLayoutStable()
     setLayoutReady(true)
-    
-    // 异步加载搜索结果，不阻塞UI响应
-    loadNotes(1, false, query).catch(error => {
-      console.error("搜索失败:", error)
-    })
   }
 
   // 清空搜索 - 最快响应版本
@@ -374,12 +398,12 @@ export default function NoteDashboard() {
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.8, y: -20 }}
                           transition={{
-                            duration: 0.2,        // 减少动画时长，更快响应
+                            duration: 0.3,        // 减少动画时长，更快响应
                             ease: [0.4, 0.0, 0.2, 1],
                             layout: { 
                               type: "spring",
-                              damping: 25,        // 增加阻尼，减少弹跳
-                              stiffness: 400,     // 增加刚性，更快响应
+                              damping: 20,        // 增加阻尼，减少弹跳
+                              stiffness: 300,     // 增加刚性，更快响应
                               mass: 0.6,          // 减少质量，更轻盈
                               restSpeed: 0.001,   // 严格的静止判断
                               restDelta: 0.001    // 严格的位置容差
