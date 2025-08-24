@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, KeyboardEvent } from "react"
+import React, { useState, useEffect, KeyboardEvent } from "react"
 import { Search, X, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -10,16 +10,26 @@ interface SearchBarProps {
   onClear: () => void
   isLoading?: boolean
   placeholder?: string
+  shouldClear?: boolean
 }
 
 export default function SearchBar({ 
   onSearch, 
   onClear, 
   isLoading = false, 
-  placeholder = "搜索笔记..." 
+  placeholder = "搜索笔记...",
+  shouldClear = false
 }: SearchBarProps) {
   const [query, setQuery] = useState("")
   const [hasSearched, setHasSearched] = useState(false)
+
+  // 响应外部清空请求
+  useEffect(() => {
+    if (shouldClear) {
+      setQuery("")
+      setHasSearched(false)
+    }
+  }, [shouldClear])
 
   const handleSearch = () => {
     if (query.trim()) {

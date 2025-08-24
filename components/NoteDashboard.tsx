@@ -24,6 +24,7 @@ export default function NoteDashboard() {
   const [daysSinceStart, setDaysSinceStart] = useState(0)
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchMode, setIsSearchMode] = useState(false)
+  const [shouldClearSearchBar, setShouldClearSearchBar] = useState(false)
 
   // 计算网站运行天数
   useEffect(() => {
@@ -107,7 +108,11 @@ export default function NoteDashboard() {
     setSearchQuery("")
     setIsSearchMode(false)
     setCurrentPage(1)
+    // 触发搜索栏清空
+    setShouldClearSearchBar(true)
     await loadNotes(1, false)
+    // 重置清空标志
+    setTimeout(() => setShouldClearSearchBar(false), 100)
   }
 
   // 加载更多笔记
@@ -223,6 +228,7 @@ export default function NoteDashboard() {
         onClear={handleClearSearch}
         isLoading={isSearching}
         placeholder="搜索笔记内容、标题、描述、标签..."
+        shouldClear={shouldClearSearchBar}
       />
 
       {/* 内容区域 */}
