@@ -27,7 +27,7 @@ export default function NoteDashboard() {
   const [shouldClearSearchBar, setShouldClearSearchBar] = useState(false)
   const [layoutReady, setLayoutReady] = useState(true) // 控制layout动画时机
   
-  // 布局稳定检测
+  // 布局稳定检测 - 针对搜索操作的完整等待
   const waitForLayoutStable = useCallback(() => {
     return new Promise<void>((resolve) => {
       let rafId: number
@@ -51,6 +51,17 @@ export default function NoteDashboard() {
       }, 200)
       
       checkStable()
+    })
+  }, [])
+
+  // 快速布局检测 - 针对清空搜索的快速响应
+  const waitForQuickLayout = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      // 清空搜索时只需要等待一次重绘即可，因为布局变化相对简单
+      requestAnimationFrame(() => {
+        // 只等待一帧，确保DOM更新完成
+        resolve()
+      })
     })
   }, [])
 
@@ -139,22 +150,20 @@ export default function NoteDashboard() {
     setLayoutReady(true)
   }
 
-  // 清空搜索
+  // 清空搜索 - 最快响应版本
   const handleClearSearch = async () => {
     setSearchQuery("")
     setIsSearchMode(false)
     setCurrentPage(1)
     
-    // 同样需要处理清空搜索时的布局动画
-    setLayoutReady(false)
-    
     // 触发搜索栏清空
     setShouldClearSearchBar(true)
+    
+    // 加载数据，但不禁用layout动画
+    // 清空搜索的布局变化相对简单，可以直接让Framer Motion处理
     await loadNotes(1, false)
     
-    // 等待布局稳定后再启用动画
-    await waitForLayoutStable()
-    setLayoutReady(true)
+    // 立即清理搜索栏状态
     setShouldClearSearchBar(false)
   }
 
