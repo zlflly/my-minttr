@@ -25,6 +25,34 @@ export default function NoteDashboard() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchMode, setIsSearchMode] = useState(false)
   const [shouldClearSearchBar, setShouldClearSearchBar] = useState(false)
+  const [layoutReady, setLayoutReady] = useState(true) // 控制layout动画时机
+  
+  // 布局稳定检测
+  const waitForLayoutStable = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      let rafId: number
+      let timeoutId: NodeJS.Timeout
+      
+      const checkStable = () => {
+        // 使用多次requestAnimationFrame确保DOM和CSS都已更新
+        rafId = requestAnimationFrame(() => {
+          rafId = requestAnimationFrame(() => {
+            rafId = requestAnimationFrame(() => {
+              resolve()
+            })
+          })
+        })
+      }
+      
+      // 设置超时保护，防止无限等待
+      timeoutId = setTimeout(() => {
+        if (rafId) cancelAnimationFrame(rafId)
+        resolve()
+      }, 200)
+      
+      checkStable()
+    })
+  }, [])
 
   // 计算网站运行天数
   useEffect(() => {
@@ -100,7 +128,15 @@ export default function NoteDashboard() {
     setSearchQuery(query)
     setIsSearchMode(true)
     setCurrentPage(1)
+    
+    // 禁用layout动画，防止搜索时的双重移动
+    setLayoutReady(false)
+    
     await loadNotes(1, false, query)
+    
+    // 等待布局稳定后再启用layout动画
+    await waitForLayoutStable()
+    setLayoutReady(true)
   }
 
   // 清空搜索
@@ -108,11 +144,18 @@ export default function NoteDashboard() {
     setSearchQuery("")
     setIsSearchMode(false)
     setCurrentPage(1)
+    
+    // 同样需要处理清空搜索时的布局动画
+    setLayoutReady(false)
+    
     // 触发搜索栏清空
     setShouldClearSearchBar(true)
     await loadNotes(1, false)
-    // 重置清空标志
-    setTimeout(() => setShouldClearSearchBar(false), 100)
+    
+    // 等待布局稳定后再启用动画
+    await waitForLayoutStable()
+    setLayoutReady(true)
+    setShouldClearSearchBar(false)
   }
 
   // 加载更多笔记
@@ -233,14 +276,8 @@ export default function NoteDashboard() {
 
       {/* 内容区域 */}
       <div className="">
-        {/* 搜索状态提示 - 固定高度确保卡片位置一致 */}
-        <div className="text-center h-3 flex items-center justify-center">
-          {isSearchMode && (
-            <p className="text-[#A3A3A3] text-sm">
-              搜索 "{searchQuery}" 的结果：{notes.length} 条
-            </p>
-          )}
-        </div>
+        {/* 固定间距容器 - 确保卡片位置一致 */}
+        <div className="h-3"></div>
 
         {/* 内容区域 */}
         {(isLoading || isSearching) && notes.length === 0 ? (
@@ -312,7 +349,7 @@ export default function NoteDashboard() {
                           key={`note-${note.id}`}
                           layoutId={`card-${note.id}`}
                           className="break-inside-avoid will-change-transform transform-gpu"
-                          layout="position"
+                          layout={layoutReady ? "position" : false}
                           initial={{ opacity: 0, scale: 0.8, y: 20 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.8, y: -20 }}
@@ -321,11 +358,11 @@ export default function NoteDashboard() {
                             ease: [0.4, 0.0, 0.2, 1],
                             layout: { 
                               type: "spring",
-                              damping: 15,        // 减少阻尼，增加弹性效果
-                              stiffness: 500,     // 增加刚性，更快响应
-                              mass: 0.6,          // 减少质量，更轻盈
-                              restSpeed: 0.01,    // 更精确的静止判断
-                              restDelta: 0.01     // 更精确的位置容差
+                              damping: 20,        // 增加阻尼，减少过度弹跳
+                              stiffness: 300,     // 适度降低刚性，更平滑
+                              mass: 0.8,          // 适度增加质量，更稳定
+                              restSpeed: 0.001,   // 更严格的静止判断
+                              restDelta: 0.001    // 更严格的位置容差
                             }
                           }}
                         >
