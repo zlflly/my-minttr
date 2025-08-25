@@ -28,11 +28,11 @@ export const createNoteSchema = z.object({
   type: noteTypeSchema.optional(),
   title: titleSchema,
   content: contentSchema,
-  url: urlSchema.optional(),
+  url: urlSchema.nullable().optional(),
   description: descriptionSchema,
-  domain: z.string().optional(),
-  faviconUrl: urlSchema.optional(),
-  imageUrl: urlSchema.optional(),
+  domain: z.string().nullable().optional(),
+  faviconUrl: urlSchema.nullable().optional(),
+  imageUrl: urlSchema.nullable().optional(),
   tags: z.string().default(''),
 });
 
