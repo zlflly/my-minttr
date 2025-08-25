@@ -34,9 +34,11 @@ export default function CreateNoteDialog({
   const [internalOpen, setInternalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"link" | "text">(initialTab)
 
-  // 当 initialTab 变化时更新 activeTab
+  // 当 initialTab 变化时更新 activeTab 并清空表单
   useEffect(() => {
     setActiveTab(initialTab)
+    // 当切换笔记类型时，清空表单数据
+    resetForm()
   }, [initialTab])
   
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
@@ -69,6 +71,21 @@ export default function CreateNoteDialog({
     setTags("")
     setMetadata(null)
   }
+
+  // 添加状态跟踪是否成功创建
+  const [wasSuccessfullyCreated, setWasSuccessfullyCreated] = useState(false)
+
+  // 监听对话框关闭，清空表单（除非是成功创建后的关闭）
+  useEffect(() => {
+    if (!open) {
+      // 如果不是成功创建后的关闭，则清空表单
+      if (!wasSuccessfullyCreated) {
+        resetForm()
+      }
+      // 重置成功创建标记
+      setWasSuccessfullyCreated(false)
+    }
+  }, [open, wasSuccessfullyCreated])
 
   // 当对话框打开时，设置 contentEditable 的内容
   useEffect(() => {
@@ -137,9 +154,11 @@ export default function CreateNoteDialog({
       
       if (response.success && response.data) {
         onNoteCreated(response.data)
-        // 使用平滑关闭动画
-        handleClose()
+        // 标记为成功创建
+        setWasSuccessfullyCreated(true)
+        // 先重置表单，再关闭对话框
         resetForm()
+        handleClose()
       } else {
         console.error("创建笔记失败:", response.error)
       }
