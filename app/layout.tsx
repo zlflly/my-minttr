@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NODE_ENV === 'production' ? 'https://my-minttr.vercel.app' : 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://www.zlflly.asia' : 'http://localhost:3000')),
   alternates: {
     canonical: '/',
   },

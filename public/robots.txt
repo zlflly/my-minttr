@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://my-minttr.vercel.app/sitemap.xml
+Sitemap: https://www.zlflly.asia/sitemap.xml

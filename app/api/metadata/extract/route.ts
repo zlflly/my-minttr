@@ -51,7 +51,7 @@ async function extractMetadata(url: string) {
       title: `来自 ${domain} 的内容`,
       description: "无法获取详细描述信息",
       image: null,
-      favicon: `https://${domain}/favicon.ico`,
+      favicon: `https://${domain}/favicon.png`,
       domain
     }
   }
@@ -409,9 +409,9 @@ function extractFavicon(html: string, baseUrl: string): string {
     return resolveUrl(iconMatch[1], baseUrl)
   }
   
-  // 默认使用 /favicon.ico
+  // 默认使用 /favicon.png
   const domain = new URL(baseUrl).origin
-  return `${domain}/favicon.ico`
+  return `${domain}/favicon.png`
 }
 
 // 解析相对 URL
