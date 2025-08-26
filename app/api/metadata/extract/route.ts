@@ -20,10 +20,18 @@ async function extractMetadata(url: string) {
       headers['Upgrade-Insecure-Requests'] = '1'
     }
     
+    // 对于itch.io，添加更好的兼容性头部
+    if (domain.includes('itch.io')) {
+      headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+      headers['Accept-Language'] = 'en-US,en;q=0.5'
+      headers['Accept-Encoding'] = 'gzip, deflate, br'
+      headers['Cache-Control'] = 'no-cache'
+    }
+    
     const response = await fetch(url, {
       headers,
       // 设置超时
-      signal: AbortSignal.timeout(10000) // 10秒超时
+      signal: AbortSignal.timeout(15000) // 15秒超时，给itch.io等复杂页面更多时间
     })
     
     if (!response.ok) {
@@ -45,13 +53,31 @@ async function extractMetadata(url: string) {
   } catch (error) {
     console.error('提取元数据失败:', error)
     
-    // 如果提取失败，返回基本信息
+    // 如果提取失败，返回增强的基本信息
     const domain = new URL(url).hostname
+    let fallbackTitle = `来自 ${domain} 的内容`
+    let fallbackDescription = "无法获取详细描述信息"
+    
+    // 为特定网站提供更好的回退信息
+    if (domain.includes('itch.io')) {
+      fallbackTitle = "itch.io 独立游戏"
+      fallbackDescription = "来自 itch.io 的独立游戏作品"
+    } else if (domain.includes('bilibili.com')) {
+      fallbackTitle = "哔哩哔哩视频"
+      fallbackDescription = "来自哔哩哔哩的视频内容"
+    } else if (domain.includes('twitter.com') || domain.includes('x.com')) {
+      fallbackTitle = "X (Twitter) 推文"
+      fallbackDescription = "来自 X 的推文内容"
+    } else if (domain.includes('github.com')) {
+      fallbackTitle = "GitHub 项目"
+      fallbackDescription = "来自 GitHub 的开源项目"
+    }
+    
     return {
-      title: `来自 ${domain} 的内容`,
-      description: "无法获取详细描述信息",
+      title: fallbackTitle,
+      description: fallbackDescription,
       image: null,
-      favicon: `https://${domain}/favicon.png`,
+      favicon: `https://${domain}/favicon.ico`,
       domain
     }
   }
@@ -62,6 +88,11 @@ function extractTitle(html: string, domain: string): string {
   // X(Twitter)特殊处理
   if (domain.includes('twitter.com') || domain.includes('x.com')) {
     return extractTwitterTitle(html, domain)
+  }
+  
+  // itch.io特殊处理
+  if (domain.includes('itch.io')) {
+    return extractItchIoTitle(html, domain)
   }
   
   // 尝试提取 title 标签
@@ -92,6 +123,11 @@ function extractDescription(html: string, baseUrl?: string): string {
     const domain = new URL(baseUrl).hostname
     if (domain.includes('twitter.com') || domain.includes('x.com')) {
       return extractTwitterDescription(html)
+    }
+    
+    // itch.io特殊处理
+    if (domain.includes('itch.io')) {
+      return extractItchIoDescription(html)
     }
   }
   
@@ -135,6 +171,11 @@ function extractImage(html: string, baseUrl: string): string | null {
     return extractTwitterImage(html, baseUrl)
   }
   
+  // itch.io特殊处理
+  if (domain.includes('itch.io')) {
+    return extractItchIoImage(html, baseUrl)
+  }
+  
   // 尝试提取 og:image
   const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i)
   if (ogImageMatch) {
@@ -151,7 +192,7 @@ function extractImage(html: string, baseUrl: string): string | null {
 }
 
 // 提取哔哩哔哩视频封面
-function extractBilibiliCover(html: string, baseUrl: string): string | null {
+function extractBilibiliCover(html: string, _baseUrl: string): string | null {
   // 优先从og:image meta标签提取（最可靠的方式）
   const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i)
   if (ogImageMatch && ogImageMatch[1]) {
@@ -412,6 +453,192 @@ function extractFavicon(html: string, baseUrl: string): string {
   // 默认使用 /favicon.png
   const domain = new URL(baseUrl).origin
   return `${domain}/favicon.png`
+}
+
+// itch.io 专门处理函数
+function extractItchIoTitle(html: string, domain: string): string {
+  // 从JSON-LD结构化数据提取游戏名称
+  const jsonLdMatch = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i)
+  if (jsonLdMatch) {
+    try {
+      const jsonData = JSON.parse(jsonLdMatch[1])
+      if (jsonData.name) {
+        return jsonData.name.trim()
+      }
+    } catch (e) {
+      console.log('解析itch.io JSON-LD失败:', e)
+    }
+  }
+  
+  // 从页面标题提取游戏名称（去掉" by [开发者名] - itch.io"后缀）
+  const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
+  if (titleMatch) {
+    let title = titleMatch[1].trim()
+    // 移除 " by [developer] - itch.io" 后缀
+    title = title.replace(/\s+by\s+[^-]+-\s*itch\.io\s*$/i, '')
+    return title
+  }
+  
+  // 尝试从页面结构中提取游戏标题
+  const gameTitleMatch = html.match(/<h1[^>]*class=["'][^"']*game_title[^"']*["'][^>]*>([^<]+)</i) ||
+                         html.match(/<h1[^>]*>([^<]+)<\/h1>/i)
+  if (gameTitleMatch) {
+    return gameTitleMatch[1].trim()
+  }
+  
+  // 尝试从og:title提取
+  const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i)
+  if (ogTitleMatch) {
+    let title = ogTitleMatch[1].trim()
+    title = title.replace(/\s+by\s+[^-]+-\s*itch\.io\s*$/i, '')
+    return title
+  }
+  
+  return `来自 ${domain} 的游戏`
+}
+
+function extractItchIoDescription(html: string): string {
+  // 从JSON-LD结构化数据提取描述
+  const jsonLdMatch = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i)
+  if (jsonLdMatch) {
+    try {
+      const jsonData = JSON.parse(jsonLdMatch[1])
+      if (jsonData.description) {
+        let description = jsonData.description.trim()
+        // 如果描述有评分信息，尝试增强描述
+        if (jsonData.aggregateRating) {
+          const rating = jsonData.aggregateRating.ratingValue
+          const count = jsonData.aggregateRating.ratingCount
+          description += ` (评分: ${rating}/5，${count}个评价)`
+        }
+        return description
+      }
+    } catch (e) {
+      console.log('解析itch.io JSON-LD描述失败:', e)
+    }
+  }
+  
+  // 从游戏描述区域提取
+  const gameDescMatch = html.match(/<div[^>]*class=["'][^"']*formatted_description[^"']*["'][^>]*>([\s\S]*?)<\/div>/i) ||
+                        html.match(/<div[^>]*class=["'][^"']*game_description[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)
+  if (gameDescMatch) {
+    // 清理HTML标签，保留文本内容
+    let description = gameDescMatch[1].replace(/<[^>]*>/g, '').trim()
+    // 限制描述长度
+    if (description.length > 200) {
+      description = description.substring(0, 200) + '...'
+    }
+    return description
+  }
+  
+  // 尝试常规meta描述
+  const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)
+  if (metaDescMatch) {
+    return metaDescMatch[1].trim()
+  }
+  
+  // 尝试og:description
+  const ogDescMatch = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i)
+  if (ogDescMatch) {
+    return ogDescMatch[1].trim()
+  }
+  
+  return "itch.io上的独立游戏"
+}
+
+function extractItchIoImage(html: string, baseUrl: string): string | null {
+  // 优先提取游戏截图（但排除GIF格式）
+  const screenshotPatterns = [
+    // 只匹配非GIF的游戏截图
+    /<img[^>]*src=["']([^"']*img\.itch\.zone[^"']*\.(?:jpg|jpeg|png|webp)[^"']*)["'][^>]*class=["'][^"']*screenshot[^"']*/i,
+    /<img[^>]*class=["'][^"']*screenshot[^"']*["'][^>]*src=["']([^"']*img\.itch\.zone[^"']*\.(?:jpg|jpeg|png|webp)[^"']*)/i,
+    // 游戏媒体图片 - 排除GIF
+    /<img[^>]*src=["']([^"']*img\.itch\.zone[^"']*\.(?:jpg|jpeg|png|webp)[^"']*)["']/i,
+    // 游戏封面
+    /<img[^>]*class=["'][^"']*game_thumb[^"']*["'][^>]*src=["']([^"']+)["']/i,
+    /<div[^>]*class=["'][^"']*game_thumb[^"']*["'][^>]*>[\s\S]*?<img[^>]*src=["']([^"']+)["']/i
+  ]
+  
+  // 首先尝试找到非GIF的游戏截图
+  for (const pattern of screenshotPatterns) {
+    const match = html.match(pattern)
+    if (match && match[1]) {
+      let imageUrl = match[1]
+      // 确认不是GIF格式
+      if (!imageUrl.toLowerCase().includes('.gif')) {
+        return resolveUrl(imageUrl, baseUrl)
+      }
+    }
+  }
+  
+  // 如果只找到GIF截图，则查找开发者头像或其他静态图片
+  const developerImagePatterns = [
+    // 开发者头像
+    /<img[^>]*class=["'][^"']*avatar[^"']*["'][^>]*src=["']([^"']*img\.itch\.zone[^"']*\.(?:jpg|jpeg|png|webp)[^"']*)/i,
+    /<img[^>]*src=["']([^"']*img\.itch\.zone[^"']*\.(?:jpg|jpeg|png|webp)[^"']*)["'][^>]*class=["'][^"']*avatar[^"']*/i,
+    // 开发者横幅
+    /<img[^>]*class=["'][^"']*banner[^"']*["'][^>]*src=["']([^"']*img\.itch\.zone[^"']*\.(?:jpg|jpeg|png|webp)[^"']*)/i,
+    // 用户头像（更通用的匹配）
+    /<a[^>]*href=["'][^"']*\/[^"'\/]+["'][^>]*>[\s\S]*?<img[^>]*src=["']([^"']*img\.itch\.zone[^"']*\.(?:jpg|jpeg|png|webp)[^"']*)["']/i
+  ]
+  
+  for (const pattern of developerImagePatterns) {
+    const match = html.match(pattern)
+    if (match && match[1]) {
+      let imageUrl = match[1]
+      return resolveUrl(imageUrl, baseUrl)
+    }
+  }
+  
+  // 备选：从JSON-LD结构化数据中提取图片
+  const jsonLdMatch = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i)
+  if (jsonLdMatch) {
+    try {
+      const jsonData = JSON.parse(jsonLdMatch[1])
+      if (jsonData.image) {
+        const imageUrl = jsonData.image
+        // 确认不是GIF格式
+        if (!imageUrl.toLowerCase().includes('.gif')) {
+          return resolveUrl(imageUrl, baseUrl)
+        }
+      }
+    } catch (e) {
+      console.log('解析itch.io JSON-LD图片失败:', e)
+    }
+  }
+  
+  // 尝试og:image作为备选（排除GIF）
+  const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i)
+  if (ogImageMatch) {
+    const imageUrl = ogImageMatch[1]
+    if (!imageUrl.toLowerCase().includes('.gif')) {
+      return resolveUrl(imageUrl, baseUrl)
+    }
+  }
+  
+  // 尝试twitter:image（排除GIF）
+  const twitterImageMatch = html.match(/<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i)
+  if (twitterImageMatch) {
+    const imageUrl = twitterImageMatch[1]
+    if (!imageUrl.toLowerCase().includes('.gif')) {
+      return resolveUrl(imageUrl, baseUrl)
+    }
+  }
+  
+  // 最后，如果实在找不到其他图片，再考虑使用任何可用的静态图片
+  const fallbackPatterns = [
+    // 任何itch.zone的非GIF图片
+    /<img[^>]*src=["']([^"']*img\.itch\.zone[^"']*\.(?:jpg|jpeg|png|webp)[^"']*)["']/i
+  ]
+  
+  for (const pattern of fallbackPatterns) {
+    const match = html.match(pattern)
+    if (match && match[1]) {
+      return resolveUrl(match[1], baseUrl)
+    }
+  }
+  
+  return null
 }
 
 // 解析相对 URL
