@@ -142,7 +142,8 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
           note: note.trim(),
           tags: tags.trim()
         });
-        // 成功后，对话框将由父组件关闭
+        // 成功后重置加载状态，对话框将由父组件关闭
+        setIsLoading(false);
       } catch (error) {
         console.error('Upload failed:', error);
         // 如果失败，重置加载状态但保持对话框打开
@@ -170,6 +171,14 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    
+    // Clear contentEditable element content
+    setTimeout(() => {
+      const editableDiv = document.querySelector('[contenteditable="true"][data-placeholder=" Write a note"]') as HTMLDivElement;
+      if (editableDiv) {
+        editableDiv.textContent = '';
+      }
+    }, 100);
   }, []);
 
   const handleOpenChange = useCallback((open: boolean) => {
