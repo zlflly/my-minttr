@@ -42,7 +42,7 @@ export async function compressImage(
     img.onload = () => {
       try {
         // 计算新尺寸
-        let { width, height } = calculateDimensions(
+        const { width, height } = calculateDimensions(
           img.width, 
           img.height, 
           maxWidth, 

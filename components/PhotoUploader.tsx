@@ -142,15 +142,17 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
           note: note.trim(),
           tags: tags.trim()
         });
-        // 成功后重置加载状态，对话框将由父组件关闭
+        // 成功后重置加载状态和表单状态
         setIsLoading(false);
+        // 手动重置表单状态确保图片被清理
+        resetForm();
       } catch (error) {
         console.error('Upload failed:', error);
         // 如果失败，重置加载状态但保持对话框打开
         setIsLoading(false);
       }
     }
-  }, [selectedFile, note, tags, isLoading, onSubmit]);
+  }, [selectedFile, note, tags, isLoading, onSubmit, resetForm]);
 
   const resetForm = useCallback(() => {
     // Clean up object URL to prevent memory leaks
