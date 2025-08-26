@@ -50,6 +50,9 @@ model Note {
   @@index([userId])
   @@index([type])
   @@index([createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)]) // 复合索引优化分页查询
+  @@index([userId, type, createdAt(sort: Desc)]) // 优化类型过滤查询
+  @@index([userId, isArchived, createdAt(sort: Desc)]) // 优化归档过滤
   @@map("notes")
 }
 

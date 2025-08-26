@@ -3,11 +3,18 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UploadIcon } from './PhotoIcons';
 import { NewPhotoData } from '../lib/photo-types';
+import { 
+  compressImage, 
+  shouldCompress, 
+  formatFileSize, 
+  getCompressionPreview,
+  CompressionResult 
+} from '../lib/image-optimization';
 
 interface PhotoUploaderProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: NewPhotoData) => void;
+  onSubmit: (data: NewPhotoData) => Promise<void>;
 }
 
 const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSubmit }) => {
@@ -16,11 +23,48 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
   const [tags, setTags] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionResult, setCompressionResult] = useState<CompressionResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageUrlRef = useRef<string | null>(null);
 
-  const handleFileSelect = useCallback((file: File) => {
+  const handleFileSelect = useCallback(async (file: File) => {
     if (file && file.type.startsWith('image/')) {
-      setSelectedFile(file);
+      // 清理之前的object URL
+      if (imageUrlRef.current) {
+        URL.revokeObjectURL(imageUrlRef.current);
+        imageUrlRef.current = null;
+      }
+      
+      // 检查是否需要压缩
+      if (shouldCompress(file)) {
+        setIsCompressing(true);
+        try {
+          const compressed = await compressImage(file, {
+            maxWidth: 1920,
+            maxHeight: 1080,
+            quality: 0.85,
+            format: 'webp',
+            maxSizeKB: 800
+          });
+          setSelectedFile(compressed.file);
+          setCompressionResult(compressed);
+          // 为压缩后的文件创建object URL
+          imageUrlRef.current = URL.createObjectURL(compressed.file);
+        } catch (error) {
+          console.error('图片压缩失败:', error);
+          // 如果压缩失败，使用原文件
+          setSelectedFile(file);
+          setCompressionResult(null);
+          imageUrlRef.current = URL.createObjectURL(file);
+        } finally {
+          setIsCompressing(false);
+        }
+      } else {
+        setSelectedFile(file);
+        setCompressionResult(null);
+        imageUrlRef.current = URL.createObjectURL(file);
+      }
     }
   }, []);
 
@@ -74,29 +118,58 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
     }
   }, [open, handlePaste]);
 
+  // Cleanup effect for component unmount
+  React.useEffect(() => {
+    return () => {
+      if (imageUrlRef.current) {
+        URL.revokeObjectURL(imageUrlRef.current);
+        imageUrlRef.current = null;
+      }
+    };
+  }, []);
+
   // 平滑关闭动画处理
   const handleClose = useCallback(() => {
     onOpenChange(false)
   }, [onOpenChange])
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (selectedFile && !isLoading) {
       setIsLoading(true);
-      onSubmit({
-        file: selectedFile,
-        note: note.trim(),
-        tags: tags.trim()
-      });
-      // 注意：不在这里关闭对话框，等待外部处理完成后再关闭
-      // 重置表单状态将在handleOpenChange中处理
+      try {
+        await onSubmit({
+          file: selectedFile,
+          note: note.trim(),
+          tags: tags.trim()
+        });
+        // 成功后，对话框将由父组件关闭
+      } catch (error) {
+        console.error('Upload failed:', error);
+        // 如果失败，重置加载状态但保持对话框打开
+        setIsLoading(false);
+      }
     }
   }, [selectedFile, note, tags, isLoading, onSubmit]);
 
   const resetForm = useCallback(() => {
+    // Clean up object URL to prevent memory leaks
+    if (imageUrlRef.current) {
+      URL.revokeObjectURL(imageUrlRef.current);
+      imageUrlRef.current = null;
+    }
+    
     setSelectedFile(null);
     setNote('');
     setTags('');
     setIsLoading(false);
+    setIsCompressing(false);
+    setCompressionResult(null);
+    setDragOver(false);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }, []);
 
   const handleOpenChange = useCallback((open: boolean) => {
@@ -171,26 +244,44 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ open, onOpenChange, onSub
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                       >
-                        {selectedFile ? (
+                        {isCompressing ? (
+                          <div className="relative w-full h-full flex flex-col items-center justify-center">
+                            <div className="w-12 h-12 border-3 border-sand-6 border-t-sand-9 rounded-full animate-spin mb-4"></div>
+                            <p className="text-sand-11 text-sm">正在优化图片...</p>
+                          </div>
+                        ) : selectedFile ? (
                           <div className="relative w-full h-full flex items-center justify-center">
                             <img 
-                              src={URL.createObjectURL(selectedFile)} 
+                              src={imageUrlRef.current || ''} 
                               alt="Preview" 
                               className="max-w-full max-h-[280px] object-contain rounded-lg"
-                              onLoad={(e) => {
-                                // Clean up object URL to prevent memory leaks
-                                const img = e.target as HTMLImageElement;
-                                if (img.src.startsWith('blob:')) {
-                                  setTimeout(() => URL.revokeObjectURL(img.src), 100);
-                                }
-                              }}
                             />
                             <button 
-                              onClick={() => setSelectedFile(null)}
+                              onClick={() => {
+                                if (imageUrlRef.current) {
+                                  URL.revokeObjectURL(imageUrlRef.current);
+                                  imageUrlRef.current = null;
+                                }
+                                setSelectedFile(null);
+                                setCompressionResult(null);
+                                if (fileInputRef.current) {
+                                  fileInputRef.current.value = '';
+                                }
+                              }}
                               className="absolute top-2 right-2 bg-sand-1 hover:bg-sand-3 rounded-full p-2 shadow-border"
                             >
                               ✕
                             </button>
+                            {compressionResult && (
+                              <div className="absolute bottom-2 left-2 bg-green-500/90 text-white px-2 py-1 rounded text-xs">
+                                {getCompressionPreview(compressionResult)}
+                              </div>
+                            )}
+                            
+                            {/* 文件信息 */}
+                            <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                              {selectedFile.type.split('/')[1].toUpperCase()} • {(selectedFile.size / 1024 / 1024).toFixed(1)}MB
+                            </div>
                           </div>
                         ) : (
                           <>

@@ -93,6 +93,8 @@ export async function POST(request: NextRequest) {
         })
       } catch (uploadError) {
         console.error('Vercel Blob upload error:', uploadError)
+        console.error('File details:', { name: file.name, size: file.size, type: file.type })
+        console.error('Upload path:', pathname)
         return Response.json({ 
           success: false, 
           error: { 

@@ -1,5 +1,6 @@
 // API 工具函数
 import { apiCache, metadataCache, generateCacheKey } from './cache';
+import { optimisticCache } from './optimistic-cache';
 import type { 
   Note, 
   APIResponse, 
@@ -62,10 +63,32 @@ function handleAPIError(error: unknown, context: string): never {
 // 获取笔记列表
 export async function fetchNotes(page = 1, limit = 20, search?: string): Promise<APIResponse<Note[]>> {
   try {
-    // 检查缓存 - 搜索请求不缓存
+    // 检查乐观缓存
+    const optimisticKey = `notes_${page}_${search || ''}`
+    const optimisticData = optimisticCache.get<Note[]>(optimisticKey)
+    
+    // 如果有乐观缓存数据，立即返回
+    if (optimisticData) {
+      // 异步更新真实数据，但不阻塞UI
+      setTimeout(() => fetchNotesFromServer(page, limit, search, optimisticKey), 0)
+      return {
+        success: true,
+        data: optimisticData,
+        pagination: {
+          page,
+          limit,
+          total: optimisticData.length,
+          totalPages: Math.ceil(optimisticData.length / limit)
+        }
+      }
+    }
+
+    // 检查传统缓存 - 搜索请求不缓存
     const cacheKey = generateCacheKey.notes(page, limit, search)
     const cachedData = !search ? apiCache.get(cacheKey) as APIResponse<Note[]> | null : null
     if (cachedData) {
+      // 同时更新乐观缓存
+      optimisticCache.set(optimisticKey, cachedData.data || [])
       return cachedData
     }
 
@@ -95,6 +118,8 @@ export async function fetchNotes(page = 1, limit = 20, search?: string): Promise
     // 缓存成功的响应（1分钟TTL，因为笔记可能经常更新）- 但不缓存搜索结果
     if (data.success && !search) {
       apiCache.set(cacheKey, data, 60 * 1000)
+      // 同时更新乐观缓存
+      optimisticCache.set(optimisticKey, data.data || [])
     }
     
     return data;
@@ -115,7 +140,38 @@ export async function fetchNotes(page = 1, limit = 20, search?: string): Promise
   }
 }
 
-// 创建笔记
+// 从服务器获取笔记数据的辅助函数
+async function fetchNotesFromServer(page: number, limit: number, search?: string, optimisticKey?: string) {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    
+    if (search) {
+      params.append('search', search);
+    }
+
+    const response = await fetch(`/api/notes?${params.toString()}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success && optimisticKey) {
+      // 更新乐观缓存
+      optimisticCache.set(optimisticKey, data.data || []);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('后台更新笔记列表失败:', error);
+  }
+}
+
+// 创建笔记（支持乐观更新）
 export async function createNote(noteData: {
   type?: "LINK" | "TEXT" | "IMAGE";
   title?: string;
@@ -126,7 +182,35 @@ export async function createNote(noteData: {
   faviconUrl?: string;
   imageUrl?: string;
   tags?: string;
-}): Promise<APIResponse<Note>> {
+}, enableOptimistic = true): Promise<APIResponse<Note>> {
+  // 创建临时笔记对象用于乐观更新
+  const tempNote: Note = {
+    id: `temp_${Date.now()}`,
+    type: (noteData.type as any) || 'TEXT',
+    title: noteData.title || null,
+    content: noteData.content || null,
+    url: noteData.url || null,
+    description: noteData.description || null,
+    domain: noteData.domain || null,
+    faviconUrl: noteData.faviconUrl || null,
+    imageUrl: noteData.imageUrl || null,
+    tags: noteData.tags || '',
+    color: 'default',
+    isHidden: false,
+    isArchived: false,
+    isFavorite: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    accessedAt: new Date(),
+  };
+
+  let tempId: string | null = null;
+
+  // 乐观更新：立即添加到缓存
+  if (enableOptimistic) {
+    tempId = optimisticCache.optimisticCreate(tempNote);
+  }
+
   try {
     const response = await fetch('/api/notes', {
       method: 'POST',
@@ -146,9 +230,22 @@ export async function createNote(noteData: {
       throw new Error('响应不是JSON格式');
     }
     
-    return response.json();
+    const result = await response.json();
+
+    // 确认乐观更新成功
+    if (enableOptimistic && tempId && result.success) {
+      optimisticCache.confirmOptimisticUpdate(tempId, result.data.id, result.data);
+    }
+
+    return result;
   } catch (error) {
     console.error('创建笔记失败:', error);
+    
+    // 回滚乐观更新
+    if (enableOptimistic && tempId) {
+      optimisticCache.rollbackOptimisticUpdate(tempId);
+    }
+    
     try {
       handleAPIError(error, 'createNote');
     } catch {

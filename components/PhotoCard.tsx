@@ -143,21 +143,36 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
       {/* Image container */}
       <div className="relative m-1 rounded-lg overflow-hidden aspect-square w-[calc(100%-8px)]">
         {/* Blurred background */}
-        <div className="absolute inset-0 blur-xl">
-          <img 
-            src={photoNote.imageUrl}
-            alt="" 
-            className="w-[120%] h-[120%] object-cover opacity-50" 
-            style={{ transform: 'translate(-10%, -10%)' }}
-          />
-        </div>
+        {photoNote.imageUrl && (
+          <div className="absolute inset-0 blur-xl">
+            <img 
+              src={photoNote.imageUrl}
+              alt="" 
+              className="w-[120%] h-[120%] object-cover opacity-50" 
+              style={{ transform: 'translate(-10%, -10%)' }}
+            />
+          </div>
+        )}
         
         {/* Main image */}
-        <img 
-          src={photoNote.imageUrl}
-          alt={photoNote.imageAlt || "image"} 
-          className="relative w-full h-full object-contain mx-auto rounded-lg cursor-pointer hover:scale-105 transition-transform duration-200" 
-        />
+        {photoNote.imageUrl ? (
+          <img 
+            src={photoNote.imageUrl}
+            alt={photoNote.imageAlt || "image"} 
+            className="relative w-full h-full object-contain mx-auto rounded-lg cursor-pointer hover:scale-105 transition-transform duration-200" 
+          />
+        ) : (
+          <div className="relative w-full h-full flex items-center justify-center bg-sand-3 rounded-lg">
+            <div className="text-center text-sand-11">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2 opacity-50">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="9" cy="9" r="2"/>
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+              </svg>
+              <p className="text-sm">Image not available</p>
+            </div>
+          </div>
+        )}
         
         {/* Click overlay for edit */}
         <div 

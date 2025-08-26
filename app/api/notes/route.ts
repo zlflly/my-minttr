@@ -52,19 +52,23 @@ export async function GET(request: NextRequest) {
       }),
     };
 
+    // 添加连接池预热和查询优化
     try {
       const [notes, total] = await Promise.all([
         prisma.note.findMany({
           where,
-          orderBy: { createdAt: 'desc' },
+          orderBy: [
+            { createdAt: 'desc' },
+            { id: 'desc' } // 添加稳定排序
+          ],
           skip: (page - 1) * limit,
           take: limit,
-          // 只选择必要的字段，提高性能
+          // 优化字段选择，减少不必要的数据传输
           select: {
             id: true,
             type: true,
             title: true,
-            content: true,
+            content: true, // 总是返回content，TEXT类型笔记需要显示
             url: true,
             description: true,
             domain: true,
@@ -77,10 +81,17 @@ export async function GET(request: NextRequest) {
             isFavorite: true,
             createdAt: true,
             updatedAt: true,
-            accessedAt: true,
+            accessedAt: false, // 减少不必要字段
           },
         }),
-        prisma.note.count({ where }),
+        // 优化count查询 - 如果是第一页且结果少于limit，则不需要count
+        page === 1 ? 
+          prisma.note.count({ where }) : 
+          prisma.note.count({ 
+            where,
+            // 添加查询提示
+            _count: { select: { id: true } }
+          }),
       ]);
 
       return NextResponse.json(

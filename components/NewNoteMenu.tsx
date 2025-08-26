@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useId } from 'react';
+import React, { useState, useRef, useEffect, useId, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImageIcon, LinkIcon, MindIcon, PlusIcon, Grid3X3, Columns3 } from './PhotoIcons';
 import PhotoUploader from './PhotoUploader';
@@ -164,29 +164,79 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({
   };
 
   // 处理图片提交
-  const handlePhotoSubmit = async (photoData: NewPhotoData) => {
+  const handlePhotoSubmit = useCallback(async (photoData: NewPhotoData) => {
+    const startTime = Date.now();
+    
     try {
+      if (!photoData.file) {
+        announce('No image file provided');
+        return;
+      }
+
+      announce('开始上传图片...');
+
+      // 首先上传图片到 Blob 存储
+      const formData = new FormData();
+      formData.append('file', photoData.file);
+
+      const uploadResponse = await fetch('/api/blob', {
+        method: 'POST',
+        body: formData,
+      });
+
+      // 检查HTTP状态码
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error(`HTTP ${uploadResponse.status}: ${uploadResponse.statusText} - ${errorText}`);
+        announce(`上传失败 (${uploadResponse.status}): ${uploadResponse.statusText}`);
+        return;
+      }
+
+      const uploadResult = await uploadResponse.json();
+      
+      if (!uploadResult.success) {
+        console.error("Failed to upload image:", uploadResult.error);
+        const errorMsg = uploadResult.error?.message || uploadResult.error?.code || '未知错误';
+        announce(`图片上传失败: ${errorMsg}`);
+        return;
+      }
+
+      announce('图片上传成功，正在保存笔记...');
+
+      // 使用上传后的 URL 创建笔记
       const newNote: CreateNoteData = {
         type: "IMAGE",
         title: photoData.note || "Image Note",
         content: photoData.note,
-        imageUrl: photoData.file ? URL.createObjectURL(photoData.file) : "",
+        imageUrl: uploadResult.data.url,
         tags: photoData.tags || "",
       };
 
       const response = await createNote(newNote);
+      const totalTime = Date.now() - startTime;
+      
       if (response.success && response.data) {
         onNoteCreated(response.data);
-        announce('Image note created successfully');
+        announce(`图片笔记创建成功！用时 ${(totalTime / 1000).toFixed(1)} 秒`);
+        setPhotoUploaderOpen(false); // 关闭上传对话框
       } else {
         console.error("Failed to create image note:", response.error);
-        announce('Failed to create image note');
+        announce('笔记创建失败，请重试');
       }
     } catch (error) {
+      const totalTime = Date.now() - startTime;
       console.error("Error creating image note:", error);
-      announce('Failed to create image note');
+      
+      let errorMessage = '请检查网络连接';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      announce(`创建失败（用时 ${(totalTime / 1000).toFixed(1)} 秒）: ${errorMessage}`);
     }
-  };
+  }, [onNoteCreated, announce]);
 
   // 处理布局切换
   const handleLayoutToggle = () => {
