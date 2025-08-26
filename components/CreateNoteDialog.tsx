@@ -113,8 +113,9 @@ export default function CreateNoteDialog({
           const response = await extractMetadata(url)
           if (response.success && response.data) {
             setMetadata(response.data)
-            if (!title) setTitle(response.data.title)
-            if (!description) setDescription(response.data.description)
+            // 只有在字段为空时才自动填充
+            if (!title) setTitle(response.data.title || '')
+            if (!description) setDescription(response.data.description || '')
           }
         } catch (error) {
           console.error("提取元数据失败:", error)
@@ -124,8 +125,11 @@ export default function CreateNoteDialog({
       }, 500) // 延迟500ms避免频繁请求
 
       return () => clearTimeout(timer)
+    } else {
+      // 如果不是链接模式或URL无效，清除元数据
+      setMetadata(null)
     }
-  }, [url, activeTab, title, description])
+  }, [url, activeTab]) // 移除title和description依赖，避免循环
 
   // 平滑关闭动画处理
   const handleClose = () => {
