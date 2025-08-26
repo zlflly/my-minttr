@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { AutoResizeTextarea } from "@/components/ui/auto-resize-textarea"
+import { AutoResizeContentEditable } from "@/components/ui/auto-resize-content-editable"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogOverlay, DialogPortal, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
 
@@ -87,22 +88,6 @@ export default function CreateNoteDialog({
     }
   }, [open, wasSuccessfullyCreated])
 
-  // 当对话框打开时，设置 contentEditable 的内容
-  useEffect(() => {
-    if (open) {
-      setTimeout(() => {
-        const editableDiv = document.querySelector('[contenteditable="true"][data-placeholder=" Add description (optional)"]') as HTMLDivElement
-        if (editableDiv) {
-          // 只有当 description 不为空时才设置内容，否则保持空状态以显示占位符
-          if (description.trim()) {
-            editableDiv.textContent = description
-          } else {
-            editableDiv.textContent = ""
-          }
-        }
-      }, 100)
-    }
-  }, [open]) // 只在 open 状态变化时触发，不监听 description
 
   // 自动提取链接元数据
   useEffect(() => {
@@ -292,11 +277,13 @@ export default function CreateNoteDialog({
                         <>
                           {/* 文本内容输入区域 */}
                           <div className="bg-sand-2 px-3 py-2">
-                            <textarea
+                            <AutoResizeTextarea
                               value={content}
                               onChange={(e) => setContent(e.target.value)}
                               placeholder=" Write your note here..."
-                              className="w-full min-h-[120px] text-[15px] bg-transparent text-sand-12 placeholder-sand-9 focus:outline-none resize-none"
+                              className="text-[15px] bg-transparent text-sand-12 placeholder-sand-9 focus:outline-none"
+                              minHeight={120}
+                              maxHeight={300}
                               required
                             />
                           </div>
@@ -308,17 +295,14 @@ export default function CreateNoteDialog({
                       
                       {/* Note input */}
                       <div className="bg-mi-amber-2 text-sand-11 px-3 py-2">
-                        <div className="font-snpro" style={{ minHeight: '70px' }}>
-                          <div 
-                            contentEditable
-                            className="prose text-[15px] max-w-full prose-zinc text-sand-12 focus:outline-none prose-li:marker:text-sand-11 subpixel-antialiased"
-                            style={{ minHeight: '70px' }}
-                            onInput={(e) => {
-                              const target = e.target as HTMLDivElement
-                              setDescription(target.textContent || '')
-                            }}
-                            suppressContentEditableWarning={true}
-                            data-placeholder=" Add description (optional)"
+                        <div className="font-snpro">
+                          <AutoResizeContentEditable
+                            className="prose text-[15px] max-w-full prose-zinc text-sand-12 prose-li:marker:text-sand-11 subpixel-antialiased"
+                            minHeight={70}
+                            maxHeight={200}
+                            placeholder=" Add description (optional)"
+                            value={description}
+                            onChange={setDescription}
                           />
                         </div>
                       </div>

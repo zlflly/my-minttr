@@ -96,6 +96,7 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({
   const [noteType, setNoteType] = useState<"link" | "text">("link");
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const justClickedRef = useRef(false); // Ref to track click interaction
+  const hasLeftMenuRef = useRef(false); // Ref to track if mouse has left menu area
   const menuRef = useRef<HTMLDivElement>(null);
   
   // 可访问性工具
@@ -117,6 +118,7 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({
   // 处理主按钮点击
   const handleMainButtonClick = () => {
     justClickedRef.current = true;
+    hasLeftMenuRef.current = false; // 点击时重置离开标记
     setIsExpanded(!isExpanded);
     
     if (!isExpanded) {
@@ -131,7 +133,8 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    if (!justClickedRef.current) {
+    // 只有在没有刚点击过 且 鼠标曾经离开过菜单区域 的情况下才自动展开
+    if (!justClickedRef.current || hasLeftMenuRef.current) {
       setIsExpanded(true);
       announce('新建菜单已展开');
     }
@@ -139,14 +142,17 @@ const NewNoteMenu: React.FC<NewNoteMenuProps> = ({
 
   // 处理鼠标离开
   const handleMouseLeave = () => {
+    hasLeftMenuRef.current = true; // 标记鼠标已离开
+    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
     
     timeoutRef.current = setTimeout(() => {
-      if (!justClickedRef.current) {
+      if (!justClickedRef.current || hasLeftMenuRef.current) {
         setIsExpanded(false);
         announce('新建菜单已关闭');
+        justClickedRef.current = false; // 重置点击标记
       }
     }, 300);
   };

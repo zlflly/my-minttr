@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { AutoResizeTextarea } from "@/components/ui/auto-resize-textarea"
+import { AutoResizeContentEditable } from "@/components/ui/auto-resize-content-editable"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
@@ -97,19 +98,6 @@ export default function EditNoteDialog({
         document.body.style.userSelect = ''
       }, 500) // 确保动画完全完成
       return () => clearTimeout(timer)
-    } else {
-      // 当对话框打开时，设置 contentEditable 的内容
-      setTimeout(() => {
-        const editableDiv = document.querySelector('[contenteditable="true"][data-placeholder=" Edit description (optional)"]') as HTMLDivElement
-        if (editableDiv) {
-          // 只有当 description 不为空时才设置内容，否则保持空状态以显示占位符
-          if (note.description && note.description.trim()) {
-            editableDiv.textContent = note.description
-          } else {
-            editableDiv.textContent = ""
-          }
-        }
-      }, 100)
     }
   }, [open, resetForm]) // 移除对 note.description 的监听，避免光标重置
 
@@ -117,17 +105,6 @@ export default function EditNoteDialog({
   useEffect(() => {
     if (open) {
       resetForm()
-      // 当笔记ID变化时，重新初始化 contentEditable 内容
-      setTimeout(() => {
-        const editableDiv = document.querySelector('[contenteditable="true"][data-placeholder=" Edit description (optional)"]') as HTMLDivElement
-        if (editableDiv) {
-          if (note.description && note.description.trim()) {
-            editableDiv.textContent = note.description
-          } else {
-            editableDiv.textContent = ""
-          }
-        }
-      }, 150) // 稍微延迟一点，确保 resetForm 完成
     }
   }, [note.id, open, resetForm])
 
@@ -318,13 +295,15 @@ export default function EditNoteDialog({
                   <>
                       {/* 文本内容输入区域 */}
                       <div className="bg-sand-2 px-3 py-2">
-                        <textarea
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
+                        <AutoResizeTextarea
+                          value={content}
+                          onChange={(e) => setContent(e.target.value)}
                           placeholder=" Write your note here..."
-                          className="w-full min-h-[120px] text-[15px] bg-transparent text-sand-12 placeholder-sand-9 focus:outline-none resize-none"
-                        required
-                      />
+                          className="text-[15px] bg-transparent text-sand-12 placeholder-sand-9 focus:outline-none"
+                          minHeight={120}
+                          maxHeight={300}
+                          required
+                        />
                       </div>
                       
                       {/* Divider */}
@@ -334,20 +313,17 @@ export default function EditNoteDialog({
                   
                   {/* Note input */}
                   <div className="bg-mi-amber-2 text-sand-11 px-3 py-2">
-                    <div className="font-snpro" style={{ minHeight: '70px' }}>
-                      <div 
-                        contentEditable
-                        className="prose text-[15px] max-w-full prose-zinc text-sand-12 focus:outline-none prose-li:marker:text-sand-11 subpixel-antialiased"
-                        style={{ minHeight: '70px' }}
-                        onInput={(e) => {
-                          const target = e.target as HTMLDivElement
-                          setDescription(target.textContent || '')
-                        }}
-                        suppressContentEditableWarning={true}
-                        data-placeholder=" Edit description (optional)"
-                  />
-                </div>
-                </div>
+                    <div className="font-snpro">
+                      <AutoResizeContentEditable
+                        className="prose text-[15px] max-w-full prose-zinc text-sand-12 prose-li:marker:text-sand-11 subpixel-antialiased"
+                        minHeight={70}
+                        maxHeight={200}
+                        placeholder=" Edit description (optional)"
+                        value={description}
+                        onChange={setDescription}
+                      />
+                    </div>
+                  </div>
 
                   {/* 细细的分隔线 */}
                   <div className="h-[1px] bg-gray-200"></div>
