@@ -1,9 +1,10 @@
 "use client"
 
 import React, { useState, useEffect, KeyboardEvent } from "react"
-import { Search, X, Loader2 } from "lucide-react"
+import { Search, X, Loader2, Clock } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { useRecentSearches } from "@/lib/hooks/use-local-storage"
 
 interface SearchBarProps {
   onSearch: (query: string) => void
@@ -22,6 +23,8 @@ export default function SearchBar({
 }: SearchBarProps) {
   const [query, setQuery] = useState("")
   const [hasSearched, setHasSearched] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const { searches, addSearch, removeSearch } = useRecentSearches()
 
   // 响应外部清空请求
   useEffect(() => {
@@ -31,16 +34,23 @@ export default function SearchBar({
     }
   }, [shouldClear])
 
-  const handleSearch = () => {
-    if (query.trim()) {
+  const handleSearch = (searchQuery?: string) => {
+    const finalQuery = searchQuery || query.trim()
+    if (finalQuery) {
       setHasSearched(true)
-      onSearch(query.trim())
+      setShowSuggestions(false)
+      addSearch(finalQuery)
+      onSearch(finalQuery)
+      if (searchQuery) {
+        setQuery(searchQuery)
+      }
     }
   }
 
   const handleClear = () => {
     setQuery("")
     setHasSearched(false)
+    setShowSuggestions(false)
     onClear()
   }
 
@@ -48,9 +58,13 @@ export default function SearchBar({
     const newQuery = e.target.value
     setQuery(newQuery)
     
+    // 显示搜索建议
+    setShowSuggestions(newQuery.trim().length > 0 && searches.length > 0)
+    
     // 如果用户清空了搜索框且之前有搜索过，自动清空搜索
     if (newQuery.trim() === "" && hasSearched) {
       setHasSearched(false)
+      setShowSuggestions(false)
       onClear()
     }
   }
@@ -60,6 +74,10 @@ export default function SearchBar({
       handleSearch()
     }
   }
+
+  const filteredSuggestions = searches.filter(search => 
+    search.toLowerCase().includes(query.toLowerCase()) && search !== query
+  ).slice(0, 5)
 
   return (
     <div className="fixed top-4 z-50 w-full max-w-md px-4" style={{ left: '50vw', transform: 'translateX(-50%)' }}>
@@ -71,6 +89,8 @@ export default function SearchBar({
               value={query}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
+              onFocus={() => setShowSuggestions(query.trim().length > 0 && searches.length > 0)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               placeholder={placeholder}
               className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-3 text-[#1C1917] placeholder:text-[#A3A3A3]"
               disabled={isLoading}
@@ -90,7 +110,7 @@ export default function SearchBar({
                 </Button>
               ) : (
                 <Button
-                  onClick={handleSearch}
+                  onClick={() => handleSearch()}
                   variant="ghost"
                   size="sm"
                   className="p-1 h-auto hover:bg-gray-100/50 rounded-full"
@@ -102,6 +122,33 @@ export default function SearchBar({
             </div>
           </div>
         </div>
+        
+        {/* 搜索建议下拉框 */}
+        {showSuggestions && filteredSuggestions.length > 0 && (
+          <div className="absolute top-full mt-2 w-full bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-xl shadow-lg overflow-hidden">
+            {filteredSuggestions.map((suggestion, index) => (
+              <div
+                key={index}
+                className="flex items-center px-4 py-2 hover:bg-gray-50/80 cursor-pointer transition-colors"
+                onClick={() => handleSearch(suggestion)}
+              >
+                <Clock className="h-4 w-4 text-[#A3A3A3] mr-3" />
+                <span className="text-[#1C1917] text-sm flex-1">{suggestion}</span>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    removeSearch(suggestion)
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 h-auto hover:bg-gray-100/50 rounded-full opacity-0 group-hover:opacity-100"
+                >
+                  <X className="h-3 w-3 text-[#A3A3A3]" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

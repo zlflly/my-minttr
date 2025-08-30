@@ -16,6 +16,7 @@ import type { Note } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { getProxiedImageUrl } from "@/lib/image-proxy"
 import { motion, AnimatePresence } from "framer-motion"
+import { useDraftNote, useUserPreferences } from "@/lib/hooks/use-local-storage"
 
 interface CreateNoteDialogProps {
   onNoteCreated: (note: Note) => void
@@ -34,6 +35,10 @@ export default function CreateNoteDialog({
 }: CreateNoteDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"link" | "text">(initialTab)
+  
+  // 使用localStorage hooks
+  const { draft, saveDraft, clearDraft, hasDraft } = useDraftNote()
+  const [preferences] = useUserPreferences()
 
   // 当 initialTab 变化时更新 activeTab 并清空表单
   useEffect(() => {
@@ -53,6 +58,18 @@ export default function CreateNoteDialog({
   const [description, setDescription] = useState("")
   const [content, setContent] = useState("")
   const [tags, setTags] = useState("")
+
+  // 从草稿恢复数据
+  useEffect(() => {
+    if (hasDraft && open) {
+      setTitle(draft.title)
+      setContent(draft.content)
+      setTags(draft.tags.join(', '))
+      if (draft.url) {
+        setUrl(draft.url)
+      }
+    }
+  }, [draft, hasDraft, open])
   
   // 元数据预览
   const [metadata, setMetadata] = useState<{
@@ -71,7 +88,25 @@ export default function CreateNoteDialog({
     setContent("")
     setTags("")
     setMetadata(null)
+    clearDraft()
   }
+
+  // 自动保存草稿
+  useEffect(() => {
+    if (preferences.autoSave && (title || content || tags || url)) {
+      const timer = setTimeout(() => {
+        saveDraft({
+          title,
+          content,
+          tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
+          url: url || undefined,
+          timestamp: Date.now()
+        })
+      }, 1000) // 1秒延迟保存
+
+      return () => clearTimeout(timer)
+    }
+  }, [title, content, tags, url, preferences.autoSave, saveDraft])
 
   // 添加状态跟踪是否成功创建
   const [wasSuccessfullyCreated, setWasSuccessfullyCreated] = useState(false)
