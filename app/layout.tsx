@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import ClientErrorBoundary from '@/components/ClientErrorBoundary'
+import ServiceWorkerProvider, { ServiceWorkerUpdatePrompt } from '@/components/ServiceWorkerProvider'
+import OfflineIndicator from '@/components/OfflineIndicator'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -108,9 +110,13 @@ export default function RootLayout({
         <link rel="mask-icon" href="/favicon.png" color="#1C1917" />
       </head>
       <body className={GeistSans.className}>
-        <ClientErrorBoundary>
-          {children}
-        </ClientErrorBoundary>
+        <ServiceWorkerProvider>
+          <ClientErrorBoundary>
+            <OfflineIndicator />
+            {children}
+            <ServiceWorkerUpdatePrompt />
+          </ClientErrorBoundary>
+        </ServiceWorkerProvider>
       </body>
     </html>
   )

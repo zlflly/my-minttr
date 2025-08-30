@@ -1,6 +1,8 @@
 // API 工具函数
 import { apiCache, metadataCache, generateCacheKey } from './cache';
 import { optimisticCache } from './optimistic-cache';
+import { offlineStorage } from './indexeddb-storage';
+import { offlineSync } from './offline-sync';
 import type { 
   Note, 
   APIResponse, 
@@ -28,6 +30,19 @@ import {
 
 // 重新导出类型，保持向后兼容
 export type { Note, APIResponse } from './types';
+
+// 网络状态检测
+function isOnline(): boolean {
+  return typeof navigator !== 'undefined' ? navigator.onLine : true;
+}
+
+// 检查是否应该使用离线模式
+async function shouldUseOfflineMode(): Promise<boolean> {
+  if (!isOnline()) return true;
+  
+  // 可以添加更多的网络质量检测逻辑
+  return false;
+}
 
 // API错误处理助手
 function handleAPIError(error: unknown, context: string): never {
@@ -63,6 +78,11 @@ function handleAPIError(error: unknown, context: string): never {
 // 获取笔记列表
 export async function fetchNotes(page = 1, limit = 20, search?: string): Promise<APIResponse<Note[]>> {
   try {
+    // 首先检查是否应该使用离线模式
+    if (await shouldUseOfflineMode()) {
+      return await fetchNotesOffline(page, limit, search);
+    }
+
     // 检查乐观缓存
     const optimisticKey = `notes_${page}_${search || ''}`
     const optimisticData = optimisticCache.get<Note[]>(optimisticKey)
@@ -115,6 +135,11 @@ export async function fetchNotes(page = 1, limit = 20, search?: string): Promise
     
     const data = await response.json();
     
+    // 保存到离线存储
+    if (data.success && data.data) {
+      await offlineStorage.saveNotes(data.data);
+    }
+    
     // 缓存成功的响应（1分钟TTL，因为笔记可能经常更新）- 但不缓存搜索结果
     if (data.success && !search) {
       apiCache.set(cacheKey, data, 60 * 1000)
@@ -125,6 +150,13 @@ export async function fetchNotes(page = 1, limit = 20, search?: string): Promise
     return data;
   } catch (error) {
     console.error('获取笔记列表失败:', error);
+    
+    // 网络错误时尝试从离线存储获取
+    if (!isOnline() || error instanceof Error && error.message.includes('fetch')) {
+      console.log('网络错误，尝试从离线存储获取笔记');
+      return await fetchNotesOffline(page, limit, search);
+    }
+    
     try {
       handleAPIError(error, 'fetchNotes');
     } catch {
@@ -135,6 +167,40 @@ export async function fetchNotes(page = 1, limit = 20, search?: string): Promise
       error: {
         code: 'FETCH_NOTES_ERROR',
         message: error instanceof Error ? error.message : '获取笔记列表失败'
+      } as APIErrorInterface
+    };
+  }
+}
+
+// 从离线存储获取笔记
+async function fetchNotesOffline(page = 1, limit = 20, search?: string): Promise<APIResponse<Note[]>> {
+  try {
+    const offset = (page - 1) * limit;
+    const notes = await offlineStorage.getNotes({
+      limit,
+      offset,
+      search
+    });
+    
+    const total = await offlineStorage.getNotesCount();
+    
+    return {
+      success: true,
+      data: notes,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  } catch (error) {
+    console.error('离线获取笔记失败:', error);
+    return {
+      success: false,
+      error: {
+        code: 'OFFLINE_FETCH_ERROR',
+        message: '离线数据获取失败'
       } as APIErrorInterface
     };
   }
@@ -173,7 +239,7 @@ async function fetchNotesFromServer(page: number, limit: number, search?: string
 
 // 创建笔记（支持乐观更新）
 export async function createNote(noteData: {
-  type?: "LINK" | "TEXT" | "IMAGE";
+  type?: "LINK" | "TEXT" | "IMAGE" | "TODO";
   title?: string;
   content?: string;
   url?: string;
@@ -199,9 +265,9 @@ export async function createNote(noteData: {
     isHidden: false,
     isArchived: false,
     isFavorite: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    accessedAt: new Date(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    accessedAt: new Date().toISOString(),
   };
 
   let tempId: string | null = null;
@@ -212,6 +278,33 @@ export async function createNote(noteData: {
   }
 
   try {
+    // 如果离线，保存到本地并添加到同步队列
+    if (!isOnline()) {
+      const offlineNote: Note = {
+        ...tempNote,
+        id: `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      };
+      
+      await offlineStorage.saveNote(offlineNote);
+      
+      await offlineSync.addOfflineOperation(
+        'create',
+        'POST',
+        '/api/notes',
+        noteData
+      );
+      
+      // 确认乐观更新成功
+      if (enableOptimistic && tempId) {
+        optimisticCache.confirmOptimisticUpdate(tempId, offlineNote.id, offlineNote);
+      }
+      
+      return {
+        success: true,
+        data: offlineNote
+      };
+    }
+
     const response = await fetch('/api/notes', {
       method: 'POST',
       headers: {
@@ -232,6 +325,11 @@ export async function createNote(noteData: {
     
     const result = await response.json();
 
+    // 保存到离线存储
+    if (result.success && result.data) {
+      await offlineStorage.saveNote(result.data);
+    }
+
     // 确认乐观更新成功
     if (enableOptimistic && tempId && result.success) {
       optimisticCache.confirmOptimisticUpdate(tempId, result.data.id, result.data);
@@ -240,6 +338,33 @@ export async function createNote(noteData: {
     return result;
   } catch (error) {
     console.error('创建笔记失败:', error);
+    
+    // 网络错误时保存到离线存储
+    if (error instanceof Error && error.message.includes('fetch')) {
+      const offlineNote: Note = {
+        ...tempNote,
+        id: `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      };
+      
+      await offlineStorage.saveNote(offlineNote);
+      
+      await offlineSync.addOfflineOperation(
+        'create',
+        'POST',
+        '/api/notes',
+        noteData
+      );
+      
+      // 确认乐观更新成功
+      if (enableOptimistic && tempId) {
+        optimisticCache.confirmOptimisticUpdate(tempId, offlineNote.id, offlineNote);
+      }
+      
+      return {
+        success: true,
+        data: offlineNote
+      };
+    }
     
     // 回滚乐观更新
     if (enableOptimistic && tempId) {
@@ -303,6 +428,23 @@ export async function updateNote(id: string, noteData: Partial<Note>): Promise<A
 // 删除笔记
 export async function deleteNote(id: string): Promise<APIResponse<{ message: string }>> {
   try {
+    // 如果离线，添加到操作队列
+    if (!isOnline()) {
+      await offlineSync.addOfflineOperation(
+        'delete',
+        'DELETE',
+        `/api/notes/${id}`
+      );
+      
+      // 立即从本地存储删除
+      await offlineStorage.deleteNote(id);
+      
+      return {
+        success: true,
+        data: { message: '笔记已删除（离线模式，将在联网后同步）' }
+      };
+    }
+
     const response = await fetch(`/api/notes/${id}`, {
       method: 'DELETE',
     });
@@ -317,9 +459,33 @@ export async function deleteNote(id: string): Promise<APIResponse<{ message: str
       throw new Error('响应不是JSON格式');
     }
     
-    return response.json();
+    const result = await response.json();
+    
+    // 成功后从本地存储删除
+    if (result.success) {
+      await offlineStorage.deleteNote(id);
+    }
+    
+    return result;
   } catch (error) {
     console.error('删除笔记失败:', error);
+    
+    // 网络错误时添加到离线队列
+    if (error instanceof Error && error.message.includes('fetch')) {
+      await offlineSync.addOfflineOperation(
+        'delete',
+        'DELETE',
+        `/api/notes/${id}`
+      );
+      
+      await offlineStorage.deleteNote(id);
+      
+      return {
+        success: true,
+        data: { message: '笔记已删除（离线模式，将在联网后同步）' }
+      };
+    }
+    
     try {
       handleAPIError(error, 'deleteNote');
     } catch {
