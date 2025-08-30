@@ -22,7 +22,7 @@ const parseQuery = (searchParams: URLSearchParams) => {
   const page = parseInt(searchParams.get('page') || '1', 10) || 1;
   const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10) || 20, 100);
   const typeParam = searchParams.get('type');
-  const type = typeParam && ['LINK', 'TEXT', 'IMAGE'].includes(typeParam) 
+  const type = typeParam && ['LINK', 'TEXT', 'IMAGE', 'TODO'].includes(typeParam) 
     ? typeParam as NoteType 
     : undefined;
   const search = searchParams.get('search')?.trim() || undefined;
@@ -75,13 +75,11 @@ export async function GET(request: NextRequest) {
             faviconUrl: true,
             imageUrl: true,
             tags: true,
-            color: true,
-            isHidden: true,
             isArchived: true,
             isFavorite: true,
             createdAt: true,
             updatedAt: true,
-            accessedAt: false, // 减少不必要字段
+            // 移除不存在的字段：color, isHidden, accessedAt
           },
         }),
         // 优化count查询 - 如果是第一页且结果少于limit，则不需要count

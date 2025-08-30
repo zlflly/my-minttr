@@ -29,7 +29,9 @@
       "Bash(cd:*)",
       "Bash(npm run lint:*)",
       "WebFetch(domain:torcado.itch.io)",
-      "WebFetch(domain:itch.io)"
+      "WebFetch(domain:itch.io)",
+      "Bash(dir:*)",
+      "Bash(sqlite3:*)"
     ],
     "deny": [],
     "ask": []

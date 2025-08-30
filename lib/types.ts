@@ -3,7 +3,7 @@
 import { z } from 'zod';
 
 // 基础类型定义
-export type NoteType = 'LINK' | 'TEXT' | 'IMAGE';
+export type NoteType = 'LINK' | 'TEXT' | 'IMAGE' | 'TODO';
 export type ColorType = 'default' | 'pink' | 'blue' | 'green';
 
 // Note接口增强版

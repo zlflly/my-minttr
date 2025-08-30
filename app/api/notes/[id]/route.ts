@@ -25,8 +25,14 @@ export async function GET(
     // 验证ID格式
     const validatedId = noteIdSchema.parse(id);
     
+    // 为演示目的，使用与主路由相同的默认用户ID
+    const defaultUserId = 'demo-user';
+    
     const note = await prisma.note.findUnique({
-      where: { id: validatedId },
+      where: { 
+        id: validatedId,
+        userId: defaultUserId
+      },
       select: {
         id: true,
         type: true,
@@ -75,7 +81,10 @@ export async function GET(
 
     // 异步更新访问时间（不等待结果）
     prisma.note.update({
-      where: { id: validatedId },
+      where: { 
+        id: validatedId,
+        userId: defaultUserId
+      },
       data: { accessedAt: new Date() },
     }).catch(console.error);
 
@@ -121,6 +130,9 @@ export async function PUT(
     const { id } = await params;
     const validatedId = noteIdSchema.parse(id);
     
+    // 为演示目的，使用与主路由相同的默认用户ID
+    const defaultUserId = 'demo-user';
+    
     const body = await request.json();
     const validatedData = updateNoteSchema.parse(body);
 
@@ -149,7 +161,10 @@ export async function PUT(
     };
 
     const note = await prisma.note.update({
-      where: { id: validatedId },
+      where: { 
+        id: validatedId,
+        userId: defaultUserId
+      },
       data: cleanData,
     });
 
@@ -211,9 +226,15 @@ export async function DELETE(
     const { id } = await params;
     const validatedId = noteIdSchema.parse(id);
     
-    // 检查笔记是否存在
+    // 为演示目的，使用与主路由相同的默认用户ID
+    const defaultUserId = 'demo-user';
+    
+    // 检查笔记是否存在且属于当前用户
     const existingNote = await prisma.note.findUnique({
-      where: { id: validatedId },
+      where: { 
+        id: validatedId,
+        userId: defaultUserId
+      },
       select: { id: true },
     });
 
@@ -221,7 +242,7 @@ export async function DELETE(
       return NextResponse.json(
         createAPIResponse(undefined, {
           code: 'NOTE_NOT_FOUND',
-          message: '笔记不存在'
+          message: '笔记不存在或您没有权限删除该笔记'
         }),
         { 
           status: 404,
@@ -231,7 +252,10 @@ export async function DELETE(
     }
 
     await prisma.note.delete({
-      where: { id: validatedId },
+      where: { 
+        id: validatedId,
+        userId: defaultUserId
+      },
     });
 
     return NextResponse.json(

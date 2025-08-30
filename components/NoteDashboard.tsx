@@ -258,7 +258,7 @@ export default function NoteDashboard() {
             typeof note.id === 'string' &&
             note.id.length > 0 &&
             'type' in note &&
-            ['LINK', 'TEXT', 'IMAGE'].includes(note.type as string)
+            ['LINK', 'TEXT', 'IMAGE', 'TODO'].includes(note.type as string)
           );
         } catch (error) {
           console.warn('Invalid note object:', note, error);

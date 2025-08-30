@@ -21,7 +21,7 @@ export const descriptionSchema = z.string()
 
 export const colorSchema = z.enum(['default', 'pink', 'blue', 'green']);
 
-export const noteTypeSchema = z.enum(['LINK', 'TEXT', 'IMAGE']);
+export const noteTypeSchema = z.enum(['LINK', 'TEXT', 'IMAGE', 'TODO']);
 
 // 笔记数据验证模式
 export const createNoteSchema = z.object({
